@@ -71,6 +71,7 @@
      <Compile Include="Assets\Plugins\MiniJsonExtensions.cs" />
      <None Include="Assets\Resources\Shaders\UnlitTransparentVertexColoredAdditive.shader" />
      <None Include="Assets\Resources\Shaders\UnlitTransparentVertexColored.shader" />
+     <None Include="Assets\Resources\Atlases\PongDemo.txt" />
      <None Include="Assets\Resources\Shaders\Unlit.shader" />
  <Reference Include="Assets\Plugins\GoKit">
  <HintPath>Assets\Plugins\GoKit.dll</HintPath>
