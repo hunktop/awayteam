@@ -1,0 +1,12 @@
+C:\Users\wsnavely\Documents\TestProject\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\wsnavely\Documents\TestProject\Temp\bin\Debug\Assembly-CSharp.dll
+C:\Users\wsnavely\Documents\TestProject\Temp\bin\Debug\Assembly-CSharp.pdb
+C:\Users\wsnavely\Documents\TestProject\Temp\bin\Debug\GoKit.dll
+C:\Users\wsnavely\Documents\TestProject\Temp\bin\Debug\UnityEditor.dll
+C:\Users\wsnavely\Documents\TestProject\Temp\bin\Debug\UnityEngine.dll
+C:\Users\wsnavely\Documents\TestProject\Temp\bin\Debug\Mono.Cecil.dll
+C:\Users\wsnavely\Documents\TestProject\Temp\bin\Debug\nunit.framework.dll
+C:\Users\wsnavely\Documents\TestProject\Temp\bin\Debug\ICSharpCode.NRefactory.dll
+C:\Users\wsnavely\Documents\TestProject\Temp\bin\Debug\Assembly-CSharp-firstpass.pdb
+C:\Users\wsnavely\Documents\TestProject\obj\Debug\Assembly-CSharp.dll
+C:\Users\wsnavely\Documents\TestProject\obj\Debug\Assembly-CSharp.pdb
