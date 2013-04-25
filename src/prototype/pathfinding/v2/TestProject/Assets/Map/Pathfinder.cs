@@ -3,12 +3,10 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-class Pathfinder
+public class Pathfinder
 {
     public static PathfindResult Pathfind(Map map, Actor actor)
     {
-        var result = new PathfindResult();
-        var frontier = new PriorityQueue<Vector2i>();
         var actorLocation = map.GetLocation(actor);
         if (actorLocation == null)
         {
@@ -16,6 +14,8 @@ class Pathfinder
         }
 
         var start = actorLocation.Value;
+        var result = new PathfindResult(start);
+        var frontier = new PriorityQueue<Vector2i>();
         result.Distance.Add(new Vector2i(start.X, start.Y), 0);
         frontier.Insert(start, 0);
 

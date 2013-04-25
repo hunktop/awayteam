@@ -12,7 +12,7 @@ public class MainLoop : MonoBehaviour, IHandleMouseEvents
     {
         FutileParams futileParams = new FutileParams(true, true, true, true);
         manager = new MouseManager(this);
-        futileParams.AddResolutionLevel(1024, 1, 1, "");
+        futileParams.AddResolutionLevel(800, 1, 1, "");
 
         futileParams.origin = new Vector2(
             0.0f, 0.0f);
@@ -22,7 +22,7 @@ public class MainLoop : MonoBehaviour, IHandleMouseEvents
         Futile.atlasManager.LoadImage("soldier");
         Futile.atlasManager.LoadImage("bluehighlight");
         var tileSize = 30;
-        var width = 35;
+        var width = 50;
         var height = 35;
         var tiles = new TileProperties[width, height];
 
@@ -60,41 +60,59 @@ public class MainLoop : MonoBehaviour, IHandleMouseEvents
 
         tileStage = new FStage("test");
         Futile.AddStage(tileStage);
-        this.map.x += 100;
-        this.map.y += 100;
-
         tileStage.stage.AddChild(this.map);
-
-        //var result = Pathfinder.Pathfind(map, map.GetActor(new Vector2i(5, 5)));
-        //foreach (var item in result.Distance.Keys)
-        //{
-        //    FSprite highlight = new FSprite("bluehighlight");
-        //    highlight.x = item.X * tileSize + tileSize / 2;
-        //    highlight.y = item.Y * tileSize + tileSize / 2;
-        //    highlight.width = highlight.height = tileSize;
-        //    Futile.stage.AddChild(highlight);
-        //}
     }
  
     // Update is called once per frame
     void Update()
 	{
-        if (Input.GetKey("w")) { tileStage.y-=3; }
-        if (Input.GetKey("s")) { tileStage.y+=3; }
-        if (Input.GetKey("a")) { tileStage.x+=3; }
-        if (Input.GetKey("d")) { tileStage.x-=3; }
-        Futile.stage.x++;
-        Futile.stage.y++;
+        var mousePosition2d = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+        var mX = mousePosition2d.x;
+        var mY = mousePosition2d.y;
+        var margin = GameConstants.MapScrollMargin;
+
+        if ((mX >= 0 && mX < margin)|| Input.GetKey("a"))
+        {
+            if (tileStage.x < 0)
+            {
+                tileStage.x += GameConstants.MapScrollSpeed;
+            }
+        }
+
+        if ((mX > (Futile.screen.width - margin) && mX <= Futile.screen.width)|| Input.GetKey("d"))
+        {
+            if (Math.Abs(tileStage.x) + Futile.screen.width < this.map.Width)
+            {
+                tileStage.x -= GameConstants.MapScrollSpeed;
+            }
+        }
+
+        if ((mY > 0 && mY < margin) || Input.GetKey("s"))
+        {
+            if (tileStage.y < 0)
+            {
+                tileStage.y += GameConstants.MapScrollSpeed;
+            }
+        }
+
+        if ((mY > (Futile.screen.height - margin) && mY < Futile.screen.height) || Input.GetKey("w"))
+        {
+            if (Math.Abs(tileStage.y) + Futile.screen.height < this.map.Height)
+            {
+                tileStage.y -= GameConstants.MapScrollSpeed;
+            }
+        }
+
         this.manager.Update();
         this.map.Update();
     }
 
     public void MouseClicked(MouseEvent e)
     { 
-        var globalToLocal = tileStage.GlobalToLocal(e.WorldCoordinates);
+        var globalToLocal = tileStage.GlobalToLocal(e.GlobalCoordinates);
         var localToStage = tileStage.LocalToStage(globalToLocal);
         Debug.Log("Screen Coords " + e.ScreenCoordinates + " " 
-            + "Global Coords " + e.WorldCoordinates + " "
+            + "Global Coords " + e.GlobalCoordinates + " "
             + "Global To Local" + globalToLocal + " "
             + "Local To Stage" + localToStage);
     }

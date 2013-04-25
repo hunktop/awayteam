@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-class Map : FContainer, IHandleMouseEvents
+public class Map : FContainer, IHandleMouseEvents
 {
     #region Private Properties
 
@@ -28,28 +28,36 @@ class Map : FContainer, IHandleMouseEvents
         private set;
     }
 
+    // Actual width of the map in points
+    public float Width
+    {
+        get
+        {
+            return this.Columns * this.tileSize;
+        }
+    }
+
+    // Actual height of the map in points
+    public float Height
+    {
+        get
+        {
+            return this.Rows * this.tileSize;
+        }
+    }
+
+    // Number of rows in the map grid
     public int Rows
     {
         get;
         private set;
     }
 
+    // Number of columns in the map grid
     public int Columns
     {
         get;
         private set;
-    }
-
-    public float ViewWidth
-    {
-        get;
-        set;
-    }
-
-    public float ViewHeight
-    {
-        get;
-        set;
     }
 
     #endregion
@@ -219,14 +227,14 @@ class Map : FContainer, IHandleMouseEvents
 
     public void MouseClicked(MouseEvent e)
     {
-        var localCoordinates = this.GlobalToLocal(e.WorldCoordinates);
-        var gridX = (int)(localCoordinates.x / this.tileSize);
-        var gridY = (int)(localCoordinates.y / this.tileSize);
+        var localCoordinates = this.GlobalToLocal(e.GlobalCoordinates);
+        var gridX = (int)((localCoordinates.x / this.tileSize) + 1) - 1;
+        var gridY = (int)((localCoordinates.y / this.tileSize) + 1) - 1;
         var gridVector = new Vector2i(gridX, gridY);
 
         if (this.selectedActor != null)
         {
-            if (this.pathfindResults != null && this.pathfindResults.Distance.ContainsKey(gridVector))
+            if (this.pathfindResults != null && this.pathfindResults.VisitablePoints.Contains(gridVector))
             {
                 this.UpdateLocation(this.selectedActor, gridVector);
                 this.ClearSelection();
@@ -235,7 +243,7 @@ class Map : FContainer, IHandleMouseEvents
         else if (this.TryGetActor(gridVector, out this.selectedActor))
         {   
             this.pathfindResults = Pathfinder.Pathfind(this, this.selectedActor);
-            foreach (var item in this.pathfindResults.Distance.Keys)
+            foreach (var item in this.pathfindResults.VisitablePoints)
             {
                 this.highlights[item.X, item.Y].isVisible = true;
                 this.highlightedIndicies.Add(item);

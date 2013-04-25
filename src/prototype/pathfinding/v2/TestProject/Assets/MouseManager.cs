@@ -19,7 +19,7 @@ public enum ButtonState
 public struct MouseEvent
 {
     public MouseButton MouseButton;
-    public Vector2 WorldCoordinates;
+    public Vector2 GlobalCoordinates;
     public Vector2 ScreenCoordinates;
 }
 
@@ -32,7 +32,7 @@ public interface IHandleMouseEvents
 
 public class MouseManager
 {
-    private class MouseState
+    private class MouseButtonState
     {
         public ButtonState[] Buttons
         {
@@ -40,7 +40,7 @@ public class MouseManager
             private set;
         }
 
-        public MouseState()
+        public MouseButtonState()
         {
             this.Buttons = new ButtonState[3];
             for(int ii = 0; ii < 3; ii++)
@@ -50,7 +50,7 @@ public class MouseManager
         }
     }
 
-    private MouseState previousMouseState = null;
+    private MouseButtonState previousMouseState = null;
     private IHandleMouseEvents mouseHandler;
 
     public MouseManager(IHandleMouseEvents handler)
@@ -58,12 +58,8 @@ public class MouseManager
         this.mouseHandler = handler; 
     }
 
-    public void Update()
+    public static Vector2 ScreenToGlobal(Vector2 screenCoord)
     {
-        // Determine the current mouse state. 
-        var currentMouseState = new MouseState();
-
-        // Project the screen location of the mouse to world coordinates
         var scale = 1.0f / Futile.displayScale;
         var mouseX = Input.mousePosition.x;
         var mouseY = Input.mousePosition.y;
@@ -71,9 +67,19 @@ public class MouseManager
         var offsetY = -Futile.screen.originY * Futile.screen.pixelHeight;
         var worldX = (mouseX + offsetX) * scale;
         var worldY = (mouseY + offsetY) * scale;
+        return new Vector2(worldX, worldY);
+    }
+
+    public void Update()
+    {
+        // Determine the current mouse state. 
+        var currentMouseState = new MouseButtonState();
+
+        // Project the screen location of the mouse to world coordinates
         var mouseEvent = new MouseEvent();
-        mouseEvent.WorldCoordinates = new Vector2(worldX, worldY);
-        mouseEvent.ScreenCoordinates = new Vector2(mouseX, mouseY);
+        var mousePosition2d = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+        mouseEvent.GlobalCoordinates = ScreenToGlobal(mousePosition2d);
+        mouseEvent.ScreenCoordinates = mousePosition2d;
 
         for(int ii = 0; ii < 3; ii++)
         {
