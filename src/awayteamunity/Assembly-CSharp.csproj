@@ -44,6 +44,7 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Scripts\ClickableObject.cs" />
      <Compile Include="Assets\Scripts\PongDemo.cs" />
      <None Include="Assets\Resources\Shaders\UnlitTransparentVertexColoredAdditive.shader" />
      <None Include="Assets\Resources\Shaders\UnlitTransparentVertexColored.shader" />

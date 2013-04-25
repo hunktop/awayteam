@@ -2,7 +2,8 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/PongDemo.cs">
     <Files>
-      <File FileName="Assets/Scripts/PongDemo.cs" Line="88" Column="10" />
+      <File FileName="Assets/Scripts/PongDemo.cs" Line="12" Column="44" />
+      <File FileName="Assets/Scripts/ClickableObject.cs" Line="30" Column="4" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

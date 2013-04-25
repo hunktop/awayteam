@@ -62,10 +62,31 @@ public class PDBall : FSprite {
 	}
 }
 
+public class MyMouse {
+	public float x;
+	public float y;
+	public MyMouse() {
+		Vector3 mousePositionInWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+		this.x = mousePositionInWorld.x;
+		this.y = mousePositionInWorld.y;
+		//this.x = Futile.screen.halfWidthInput.mousePosition.x;
+		//this.y = Camera.main.ScreenToWorldPoint(Input.mousePosition).y;
+	}
+	
+	public void Update(float dt) {
+		Vector3 mousePositionInWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+		this.x = mousePositionInWorld.x;
+		this.y = mousePositionInWorld.y;
+		//this.x = Camera.main.ScreenToWorldPoint(Input.mousePosition).x;
+		//this.y = Camera.main.ScreenToWorldPoint(Input.mousePosition).y;
+	}
+}
+
 public class PDGame {
 	public PDPaddle player1;
 	public PDPaddle player2;
 	public PDBall ball;
+	public MyMouse mouse;
 	
 	public PDGame() {
 		player1 = new PDPaddle("player1", "w", "s");
@@ -75,9 +96,12 @@ public class PDGame {
 		ball = new PDBall();
 		ResetBall();
 		
+		mouse = new MyMouse();
+		
 		Futile.stage.AddChild(player1);
 		Futile.stage.AddChild(player2);
 		Futile.stage.AddChild(ball);
+		
 	}
 	
 	public void Update(float dt) {
@@ -86,6 +110,11 @@ public class PDGame {
 		
 		player1.Update(dt);
 		player2.Update(dt);
+		
+		//player1.x = Input.mousePosition.x;
+		//player1.y = Input.mousePosition.y;
+		
+		//mouse.Update(dt);
 	}
 	
 	public void ResetPaddles() {
