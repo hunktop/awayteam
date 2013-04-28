@@ -133,28 +133,26 @@ public class MissionPage : GamePage, FSingleTouchableInterface
                 }
             }
 
-            if (Input.GetKey(KeyCode.Escape))
+            if (Input.GetKeyUp(KeyCode.Escape))
             {
-                if (actorState == ActorState.SelectingDestination)
+                if (actorState == ActorState.SelectingDestination || actorState == ActorState.SelectingEnemy)
                 {
                     this.selectedActor.TurnState = ActorState.AwaitingCommand;
-                    this.clearHighlightedPath();
+                    this.clearHighlights();
+                    this.clearCrossHair();
                     this.showButtonStrip(this.selectedActor);
                 }
-                else if (actorState == ActorState.SelectingEnemy)
+                else if (actorState == ActorState.AwaitingCommand)
                 {
-                    this.selectedActor.TurnState = ActorState.AwaitingCommand;
-                    this.showButtonStrip(this.selectedActor);
-                    this.clearCrossHair();
-
                     if (!this.selectedActor.HasMovedThisTurn)
                     {
-                        this.highlightMovableAndAttackable();
+                        this.selectedActor.TurnState = ActorState.TurnStart;
+                        this.clearSelection();
+                        this.RemoveChild(this.buttonStrip);
                     }
                 }
             }
         }
-
 
         base.Update();
     }
@@ -213,8 +211,8 @@ public class MissionPage : GamePage, FSingleTouchableInterface
                     // Recompute the set of attackable points, since the actor has moved.
                     var tempEnum = MoveAndAttackHelper.GetAttackablePoints(this.map, gridVector, 1, 2);
                     this.localAttackablePoints = new HashSet<Vector2i>(tempEnum);
-                    this.highlightLocalAttackable();
                     this.showButtonStrip(this.selectedActor);
+                    this.clearHighlights();
                 }
             }
             else if(actorState == ActorState.SelectingEnemy)
@@ -234,7 +232,6 @@ public class MissionPage : GamePage, FSingleTouchableInterface
                 this.pathfindResults = MoveAndAttackHelper.Pathfind(this.map, this.selectedActor);
                 var tempEnum = MoveAndAttackHelper.GetAttackablePoints(this.map, gridVector, 1, 2);
                 this.localAttackablePoints = new HashSet<Vector2i>(tempEnum);
-                this.highlightMovableAndAttackable();
                 this.showButtonStrip(this.selectedActor);
             }
         }
@@ -256,7 +253,7 @@ public class MissionPage : GamePage, FSingleTouchableInterface
             && this.selectedActor.TurnState == ActorState.AwaitingCommand 
             && !this.selectedActor.HasMovedThisTurn)
         {
-
+            this.highlightDesinations();
             this.selectedActor.TurnState = ActorState.SelectingDestination;
             this.RemoveChild(this.buttonStrip);
         }
@@ -267,21 +264,7 @@ public class MissionPage : GamePage, FSingleTouchableInterface
         Debug.Log("Attack button clicked.");
         if (this.selectedActor != null)
         {
-            // Kludgy?  Probably.  If the actor has moved this turn, then
-            // the attackable squares should already be highlighted.  If 
-            // the actor hasn't moved, need to clear the current highlights
-            // and highlight the attackable squares.
-            if (!this.selectedActor.HasMovedThisTurn)
-            {
-                this.clearHighlights();
-                foreach (var item in this.localAttackablePoints)
-                {
-                    this.setElement(this.highlights[item.X, item.Y], "redhighlight");
-                    this.highlights[item.X, item.Y].isVisible = true;
-                    this.highlightedIndicies.Add(item);
-                }
-            }
-
+            this.highlightLocalAttackable();
             this.selectedActor.TurnState = ActorState.SelectingEnemy;
             this.RemoveChild(this.buttonStrip);
         }
@@ -340,6 +323,7 @@ public class MissionPage : GamePage, FSingleTouchableInterface
     {
         this.clearHighlights();
         this.selectedActor = null;
+
     }
 
     private void showButtonStrip(Actor actor)
@@ -356,7 +340,6 @@ public class MissionPage : GamePage, FSingleTouchableInterface
             }
 
             this.buttonStrip.AddButton(this.attackButton);
-            this.buttonStrip.AddButton(this.useItemButton);
             this.buttonStrip.AddButton(this.waitButton);
            
             this.buttonStrip.isVisible = true;
@@ -381,18 +364,12 @@ public class MissionPage : GamePage, FSingleTouchableInterface
         }
     }
 
-    private void highlightMovableAndAttackable()
+    private void highlightDesinations()
     {
         this.clearHighlights();
         foreach (var item in this.pathfindResults.VisitablePoints)
         {
             this.setElement(this.highlights[item.X, item.Y], "bluehighlight");
-            this.highlights[item.X, item.Y].isVisible = true;
-            this.highlightedIndicies.Add(item);
-        }
-        foreach (var item in this.pathfindResults.AttackablePoints)
-        {
-            this.setElement(this.highlights[item.X, item.Y], "redhighlight");
             this.highlights[item.X, item.Y].isVisible = true;
             this.highlightedIndicies.Add(item);
         }
