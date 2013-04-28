@@ -1,6 +1,10 @@
 ﻿using System.Collections.Generic;
 using System;
 
+/// <summary>
+/// A priority queue, useful for pathfinding algorithms.
+/// </summary>
+/// <typeparam name="Key"></typeparam>
 public class PriorityQueue<Key>
 {
     private List<KeyValuePair<Key, int>> heap;

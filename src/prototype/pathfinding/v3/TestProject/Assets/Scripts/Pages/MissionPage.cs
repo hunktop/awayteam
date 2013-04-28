@@ -2,36 +2,52 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// This class implements the "Mission" page, where the turned based strategu stuff happens.
+/// Still under HEAVY development.
+/// </summary>
 public class MissionPage : GamePage, FSingleTouchableInterface
 {
     #region Private Fields
 
-    private Map map;
-    private Actor selectedActor;
     private int tileSize;
+    private Map map;
+    private Actor selectedActor; 
     private PathfindResult pathfindResults;
-    private List<Vector2i> highlightedIndicies;
+
     private FSprite blueHighlight;
     private FSprite redHighlight;
+    private FSprite crosshair;
     private FSprite[,] highlights;
+    
     private FButton moveButton;
     private FButton attackButton;
     private FButton cancelButton;
+    private FButton waitButton;
+    private FButton useItemButton;
     private ButtonStrip buttonStrip;
+    
     private List<Vector2i> highlightedPath;
-    private Stack<ExtendedActorState> actorActionStack;
+    private HashSet<Vector2i> localAttackablePoints;
+    private HashSet<Vector2i> highlightedIndicies;
 
     #endregion
 
     #region Start
 
+    /// <summary>
+    /// Initialize resources.  Right now, for testing purposes, a simple random map is 
+    /// generated here with a few actors in it.
+    /// </summary>
     public override void Start()
     {
-        this.tileSize = 30;
+        this.tileSize = 32;
         var width = 50;
         var height = 35;
         var tiles = new TileProperties[width, height];
+        this.localAttackablePoints = new HashSet<Vector2i>();
 
+        // Generate a very simple random map with two different kinds of tiles
         var rand = new System.Random();
         for (int ii = 0; ii < width; ii++)
         {
@@ -41,20 +57,31 @@ public class MissionPage : GamePage, FSingleTouchableInterface
             }
         }
 
+        // Add a few actors to the map
         this.map = new Map(tiles, tileSize);
         this.map.AddActor(StaticActors.GoodSoldier, new Vector2i(5, 5));
+        this.map.AddActor(StaticActors.GoodSoldier, new Vector2i(5, 3));
         this.map.AddActor(StaticActors.EvilSoldier, new Vector2i(5, 7), true);
         this.map.Start();
         this.AddChild(this.map);
 
+        // Initilialize buttons
+        this.crosshair = new FSprite("crosshair");
+        this.crosshair.width = this.crosshair.height = this.tileSize;
         this.moveButton = new FButton("move");
         this.moveButton.sprite.width = this.moveButton.sprite.height = 32;
         this.attackButton = new FButton("attack");
         this.attackButton.sprite.width = this.attackButton.sprite.height = 32;
+        this.waitButton = new FButton("wait");
+        this.waitButton.sprite.width = this.waitButton.sprite.height = 32;
+        this.useItemButton = new FButton("useitem");
+        this.useItemButton.sprite.width = this.useItemButton.sprite.height = 32;
         this.moveButton.SignalRelease += new Action<FButton>(moveButton_SignalRelease);
         this.attackButton.SignalRelease += new Action<FButton>(attackButton_SignalRelease);
+        this.waitButton.SignalRelease += new Action<FButton>(waitButton_SignalRelease);
 
-        this.highlightedIndicies = new List<Vector2i>();
+        // Initialize highlights
+        this.highlightedIndicies = new HashSet<Vector2i>();
         this.highlights = new FSprite[map.Columns, map.Rows];
         this.highlightedPath = new List<Vector2i>();
         for (int ii = 0; ii < map.Columns; ii++)
@@ -70,31 +97,36 @@ public class MissionPage : GamePage, FSingleTouchableInterface
                 this.AddChild(highlightSprite);
             }
         }
-
-        this.actorActionStack = new Stack<ExtendedActorState>();
     }
 
     #endregion
 
     #region Update
 
+    /// <summary>
+    /// Right now the Update just handles mouse-over events (look at the position of
+    /// the mouse and figure out if we have to change the display in some way).
+    /// </summary>
     public override void  Update()
     {
         var mousePosition2d = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
-        this.ScrollMap(mousePosition2d);
+        var globalCoords = MouseManager.ScreenToGlobal(mousePosition2d);
+        var gridVector = this.map.GlobalToGrid(globalCoords);
+        this.scrollMap(mousePosition2d);
 
         if (this.selectedActor != null)
         {
             var actorState = this.selectedActor.TurnState;
             if (actorState == ActorState.SelectingDestination)
             {
-                var globalCoords = MouseManager.ScreenToGlobal(mousePosition2d);
-                var gridVector = this.map.GlobalToGrid(globalCoords);
                 this.highlightPath(gridVector);
             }
-            else if(actorState == ActorState.SelectingEnemy)
+            else if (actorState == ActorState.SelectingEnemy)
             {
-
+                if (this.localAttackablePoints.Contains(gridVector))
+                {
+                    this.drawCrossHair(gridVector);
+                }
             }
         }
 
@@ -151,20 +183,25 @@ public class MissionPage : GamePage, FSingleTouchableInterface
                     this.selectedActor.HasMovedThisTurn = true;
                     this.selectedActor.TurnState = ActorState.AwaitingCommand;
                     this.map.UpdateLocation(this.selectedActor, gridVector);
-                    this.ClearHighlights();
+                    this.clearHighlights();
 
-                    if (MoveAndAttackHelper.CanAttack(this.selectedActor, this.map))
+                    // Recompute the set of attackable points, since the actor has moved.
+                    var tempEnum = MoveAndAttackHelper.GetAttackablePoints(this.map, gridVector, 1, 2);
+                    this.localAttackablePoints = new HashSet<Vector2i>(tempEnum);
+
+                    // Show the attackable points on the map with a red highlight.
+                    foreach (var item in this.localAttackablePoints)
                     {
-                        var targets = MoveAndAttackHelper.GetAttackablePoints(this.map, gridVector, 1, 2);
-                        foreach (var item in targets)
-                        {
-                            this.setElement(this.highlights[item.X, item.Y], "redhighlight");
-                            this.highlights[item.X, item.Y].isVisible = true;
-                            this.highlightedIndicies.Add(item);
-                        }
-                        this.showButtonStrip(this.selectedActor);
+                        this.setElement(this.highlights[item.X, item.Y], "redhighlight");
+                        this.highlights[item.X, item.Y].isVisible = true;
+                        this.highlightedIndicies.Add(item);
                     }
+                    this.showButtonStrip(this.selectedActor);
                 }
+            }
+            else if(actorState ==  ActorState.SelectingEnemy)
+            {
+                
             }
         }
         else if (this.map.TryGetActor(gridVector, out this.selectedActor))
@@ -174,6 +211,9 @@ public class MissionPage : GamePage, FSingleTouchableInterface
             {
                 this.selectedActor.TurnState = ActorState.AwaitingCommand;
                 this.pathfindResults = MoveAndAttackHelper.Pathfind(this.map, this.selectedActor);
+                var tempEnum = MoveAndAttackHelper.GetAttackablePoints(this.map, gridVector, 1, 2);
+                this.localAttackablePoints = new HashSet<Vector2i>(tempEnum);
+
                 foreach (var item in this.pathfindResults.VisitablePoints)
                 {
                     this.setElement(this.highlights[item.X, item.Y], "bluehighlight");
@@ -201,10 +241,13 @@ public class MissionPage : GamePage, FSingleTouchableInterface
 
     private void moveButton_SignalRelease(FButton b)
     {
+        Debug.Log("Move button clicked.");
+        
         if (this.selectedActor != null 
             && this.selectedActor.TurnState == ActorState.AwaitingCommand 
             && !this.selectedActor.HasMovedThisTurn)
         {
+
             this.selectedActor.TurnState = ActorState.SelectingDestination;
             this.RemoveChild(this.buttonStrip);
         }
@@ -212,9 +255,37 @@ public class MissionPage : GamePage, FSingleTouchableInterface
 
     private void attackButton_SignalRelease(FButton b)
     {
+        Debug.Log("Attack button clicked.");
         if (this.selectedActor != null)
         {
-            Debug.Log("Attack button clicked.");
+            // Kludgy?  Probably.  If the actor has moved this turn, then
+            // the attackable squares should already be highlighted.  If 
+            // the actor hasn't moved, need to clear the current highlights
+            // and highlight the attackable squares.
+            if (!this.selectedActor.HasMovedThisTurn)
+            {
+                this.clearHighlights();
+                foreach (var item in this.localAttackablePoints)
+                {
+                    this.setElement(this.highlights[item.X, item.Y], "redhighlight");
+                    this.highlights[item.X, item.Y].isVisible = true;
+                    this.highlightedIndicies.Add(item);
+                }
+            }
+
+            this.selectedActor.TurnState = ActorState.SelectingEnemy;
+            this.RemoveChild(this.buttonStrip);
+        }
+    }
+
+    private void waitButton_SignalRelease(FButton b)
+    {
+        Debug.Log("Wait button clicked.");
+        if (this.selectedActor != null)
+        {
+            this.selectedActor.TurnState = ActorState.TurnOver;
+            this.clearSelection();
+            this.RemoveChild(this.buttonStrip);
         }
     }
 
@@ -230,7 +301,7 @@ public class MissionPage : GamePage, FSingleTouchableInterface
         }
     }
 
-    private void ClearHighlights()
+    private void clearHighlights()
     {
         foreach (var index in this.highlightedIndicies)
         {
@@ -239,9 +310,9 @@ public class MissionPage : GamePage, FSingleTouchableInterface
         this.highlightedIndicies.Clear();
     }
 
-    private void ClearSelection()
+    private void clearSelection()
     {
-        this.ClearHighlights();
+        this.clearHighlights();
         this.selectedActor = null;
     }
 
@@ -253,17 +324,15 @@ public class MissionPage : GamePage, FSingleTouchableInterface
 
         if (actor != null && actor.TurnState == ActorState.AwaitingCommand)
         {
-            Debug.Log(actor.HasMovedThisTurn);
             if (!actor.HasMovedThisTurn)
             {
                 this.buttonStrip.AddButton(this.moveButton);
             }
 
-            if(MoveAndAttackHelper.CanAttack(actor, this.map))
-            {
-                this.buttonStrip.AddButton(this.attackButton);
-            }
-            
+            this.buttonStrip.AddButton(this.attackButton);
+            this.buttonStrip.AddButton(this.useItemButton);
+            this.buttonStrip.AddButton(this.waitButton);
+           
             this.buttonStrip.isVisible = true;
             this.buttonStrip.x = actor.x + actor.width;
             this.buttonStrip.y = actor.y - actor.height;
@@ -271,11 +340,26 @@ public class MissionPage : GamePage, FSingleTouchableInterface
         }
     }
 
+    /// <summary>
+    /// Draw a crosshair at the given position in the grid.
+    /// </summary>
+    /// <param name="dest"></param>
+    private void drawCrossHair(Vector2i dest)
+    {
+        this.crosshair.x = dest.X * this.tileSize + this.tileSize / 2;
+        this.crosshair.y = dest.Y * this.tileSize + this.tileSize / 2;
+
+        if (!this._childNodes.Contains(this.crosshair))
+        {
+            this.AddChild(this.crosshair);
+        }
+    }
+
     private void highlightPath(Vector2i dest)
     {
         if (this.selectedActor != null)
         {
-            foreach(var item in this.highlightedPath)
+            foreach (var item in this.highlightedPath)
             {
                 this.highlights[item.X, item.Y].element = Futile.atlasManager.GetElementWithName("bluehighlight");
             }
@@ -285,7 +369,7 @@ public class MissionPage : GamePage, FSingleTouchableInterface
             {
                 Vector2i p = dest;
                 Vector2i origin;
-                if(map.TryGetLocation(this.selectedActor, out origin))
+                if (map.TryGetLocation(this.selectedActor, out origin))
                 {
                     while (p != origin)
                     {
@@ -298,7 +382,7 @@ public class MissionPage : GamePage, FSingleTouchableInterface
         }
     }
 
-    private void ScrollMap(Vector2 mousePosition)
+    private void scrollMap(Vector2 mousePosition)
     {
         var mX = mousePosition.x;
         var mY = mousePosition.y;
@@ -335,14 +419,6 @@ public class MissionPage : GamePage, FSingleTouchableInterface
                 this.y -= GameConstants.MapScrollSpeed;
             }
         }
-    }
-
-    private void PushState(Actor actor, Map map)
-    {
-    }
-
-    private void PopState(Actor actor, Map map)
-    {
     }
 
     #endregion

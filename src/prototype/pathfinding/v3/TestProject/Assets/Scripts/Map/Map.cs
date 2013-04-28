@@ -120,6 +120,7 @@ public class Map : FContainer
 
     public void Start()
     {
+        // Why do this?  Because Futile likes sprite with the same image to be loaded at the same time
         foreach (var group in this.YieldTiles().GroupBy(tile => tile.Properties.SpriteName))
         {
             foreach (var item in group)
@@ -165,12 +166,12 @@ public class Map : FContainer
         this.pointToActor.Add(location, actor);
     }
 
-    //public void RemoveActor(Actor actor)
-    //{
-    //    var location = this.actorToPoint[actor];
-    //    this.actorToPoint.Remove(actor);
-    //    this.pointToActor.Remove(location);
-    //}
+    public void RemoveActor(Actor actor)
+    {
+        var location = this.actorToPoint[actor];
+        this.actorToPoint.Remove(actor);
+        this.pointToActor.Remove(location);
+    }
 
     public void UpdateLocation(Actor actor, Vector2i location)
     {
@@ -186,6 +187,12 @@ public class Map : FContainer
 
     #region Private Methods
 
+    /// <summary>
+    /// Generates a sequence containing all the tiles in the map.
+    /// Makes it easier to iterate over all the tiles (can use one
+    /// foreach loop instead of nested for loops).
+    /// </summary>
+    /// <returns></returns>
     private IEnumerable<Tile> YieldTiles()
     {
         for (int ii = 0; ii < this.Columns; ii++)
@@ -194,25 +201,6 @@ public class Map : FContainer
             {
                 yield return this.Tiles[ii, jj];
             }
-        }
-    }
-
-    private IEnumerable<Vector2i> GetPointsAtDistance(Vector2i start, int dist)
-    {
-        int x = start.X;
-        int y = start.Y;
-
-        Vector2i p1 = new Vector2i(x - dist, y); yield return p1;
-        Vector2i p2 = new Vector2i(x + dist, y); yield return p2;
-        Vector2i p3 = new Vector2i(x, y - dist); yield return p3;
-        Vector2i p4 = new Vector2i(x, y + dist); yield return p4;
-
-        for (int ii = 0; ii < dist - 1; ii++)
-        {
-            p1.X++; p1.Y--; yield return p1;
-            p2.X--; p2.Y++; yield return p2;
-            p3.X++; p3.Y++; yield return p3;
-            p4.X--; p4.Y--; yield return p4;
         }
     }
 

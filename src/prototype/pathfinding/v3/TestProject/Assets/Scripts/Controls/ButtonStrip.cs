@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 public enum ButtonStripOrientation 
 {
@@ -6,7 +7,10 @@ public enum ButtonStripOrientation
     Vertical
 }
 
-public class ButtonStrip : FContainer, IHandleMouseEvents
+/// <summary>
+/// A simple class for displaying buttons in a horizontal or vertical strip.
+/// </summary>
+public class ButtonStrip : FContainer
 {
     #region Private Fields
 
@@ -51,18 +55,78 @@ public class ButtonStrip : FContainer, IHandleMouseEvents
         }
     }
 
+    /// <summary>
+    /// The pixel width of the control.
+    /// </summary>
+    public float Width
+    {
+        get
+        {
+            float result = 0f;
+            
+            if(this.Orientation == ButtonStripOrientation.Horizontal)
+            {
+                // For horizontal orientation, first sum the button widths
+                result = this.buttons.Sum(b => b.sprite.width);
+
+                // Then add in the spacing for every button but the last
+                if(this.buttons.Count > 0)
+                {
+                    result += (this.buttons.Count - 1) * this.Spacing;
+                }
+            }
+            else 
+            {
+                // For vertical orientation, return the width of the widest button
+                result = this.buttons.Max(b => b.sprite.width);
+            }
+
+            return result;
+        }
+    }
+
+    /// <summary>
+    /// The pixel height of the control.
+    /// </summary>
+    public float Height
+    {
+        get
+        {
+            float result = 0f;
+
+            if (this.Orientation == ButtonStripOrientation.Vertical)
+            {
+                // For horizontal orientation, first sum the button heights
+                result = this.buttons.Sum(b => b.sprite.height);
+
+                // Then add in the spacing for every button but the last
+                if (this.buttons.Count > 0)
+                {
+                    result += (this.buttons.Count - 1) * this.Spacing;
+                }
+            }
+            else
+            {
+                // For vertical orientation, return the height of the tallest button
+                result = this.buttons.Max(b => b.sprite.height);
+            }
+
+            return result;
+        }
+    }
+
     #endregion
+
+    #region Ctor
 
     public ButtonStrip()
     {
         this.buttons = new List<FButton>();
-        this.mouseManager = new MouseManager(this);
     }
 
-    public void Update()
-    {
+    #endregion
 
-    }
+    #region Public Methods
 
     public void AddButton(FButton button)
     {
@@ -78,24 +142,7 @@ public class ButtonStrip : FContainer, IHandleMouseEvents
         this.layout();
     }
 
-    #region Mouse Event Handlers
-
-    public void MouseClicked(MouseEvent e)
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public void MousePressed(MouseEvent e)
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public void MouseReleased(MouseEvent e)
-    {
-        throw new System.NotImplementedException();
-    }
-
-    #endregion 
+    #endregion
 
     #region Private Methods
 

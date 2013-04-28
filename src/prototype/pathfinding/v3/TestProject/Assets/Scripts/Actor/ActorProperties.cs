@@ -1,3 +1,6 @@
+/// <summary>
+/// Temporary class for storing actor metadata.
+/// </summary>
 public class ActorProperties
 {
     public string Name

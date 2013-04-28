@@ -3,6 +3,13 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
+/* 
+ * The stuff in this file is of questionable usefulness... it's mostly an experiment to try and 
+ * get basic mouse input working, but it doesn't really play well with the rest of
+ * Futile (E.G. the FTouchManager).  Probably should use FTouchManager instead of this 
+ * class for most things...
+ */
+
 public enum MouseButton
 {
     Left = 0,

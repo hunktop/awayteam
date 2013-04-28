@@ -3,5 +3,6 @@
     TurnStart,
     AwaitingCommand,
     SelectingDestination,
-    SelectingEnemy
+    SelectingEnemy,
+    TurnOver
 }
