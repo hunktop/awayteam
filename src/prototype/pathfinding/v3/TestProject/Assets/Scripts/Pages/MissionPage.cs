@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// This class implements the "Mission" page, where the turned based strategu stuff happens.
+/// This class implements the "Mission" page, where the turned based strategy stuff happens.
 /// Still under HEAVY development.
 /// </summary>
 public class MissionPage : GamePage, FSingleTouchableInterface
@@ -61,7 +61,7 @@ public class MissionPage : GamePage, FSingleTouchableInterface
         this.map = new Map(tiles, tileSize);
         this.map.AddActor(StaticActors.GoodSoldier, new Vector2i(5, 5));
         this.map.AddActor(StaticActors.GoodSoldier, new Vector2i(5, 3));
-        this.map.AddActor(StaticActors.EvilSoldier, new Vector2i(5, 7), true);
+        this.map.AddActor(StaticActors.EvilSoldier, new Vector2i(7, 4), true);
         this.map.Start();
         this.AddChild(this.map);
 
@@ -127,8 +127,34 @@ public class MissionPage : GamePage, FSingleTouchableInterface
                 {
                     this.drawCrossHair(gridVector);
                 }
+                else
+                {
+                    this.clearCrossHair();
+                }
+            }
+
+            if (Input.GetKey(KeyCode.Escape))
+            {
+                if (actorState == ActorState.SelectingDestination)
+                {
+                    this.selectedActor.TurnState = ActorState.AwaitingCommand;
+                    this.clearHighlightedPath();
+                    this.showButtonStrip(this.selectedActor);
+                }
+                else if (actorState == ActorState.SelectingEnemy)
+                {
+                    this.selectedActor.TurnState = ActorState.AwaitingCommand;
+                    this.showButtonStrip(this.selectedActor);
+                    this.clearCrossHair();
+
+                    if (!this.selectedActor.HasMovedThisTurn)
+                    {
+                        this.highlightMovableAndAttackable();
+                    }
+                }
             }
         }
+
 
         base.Update();
     }
@@ -183,25 +209,20 @@ public class MissionPage : GamePage, FSingleTouchableInterface
                     this.selectedActor.HasMovedThisTurn = true;
                     this.selectedActor.TurnState = ActorState.AwaitingCommand;
                     this.map.UpdateLocation(this.selectedActor, gridVector);
-                    this.clearHighlights();
 
                     // Recompute the set of attackable points, since the actor has moved.
                     var tempEnum = MoveAndAttackHelper.GetAttackablePoints(this.map, gridVector, 1, 2);
                     this.localAttackablePoints = new HashSet<Vector2i>(tempEnum);
-
-                    // Show the attackable points on the map with a red highlight.
-                    foreach (var item in this.localAttackablePoints)
-                    {
-                        this.setElement(this.highlights[item.X, item.Y], "redhighlight");
-                        this.highlights[item.X, item.Y].isVisible = true;
-                        this.highlightedIndicies.Add(item);
-                    }
+                    this.highlightLocalAttackable();
                     this.showButtonStrip(this.selectedActor);
                 }
             }
-            else if(actorState ==  ActorState.SelectingEnemy)
+            else if(actorState == ActorState.SelectingEnemy)
             {
-                
+                if (this.localAttackablePoints.Contains(gridVector))
+                {
+                    Debug.Log("Attacking point: " + gridVector);
+                }
             }
         }
         else if (this.map.TryGetActor(gridVector, out this.selectedActor))
@@ -213,19 +234,7 @@ public class MissionPage : GamePage, FSingleTouchableInterface
                 this.pathfindResults = MoveAndAttackHelper.Pathfind(this.map, this.selectedActor);
                 var tempEnum = MoveAndAttackHelper.GetAttackablePoints(this.map, gridVector, 1, 2);
                 this.localAttackablePoints = new HashSet<Vector2i>(tempEnum);
-
-                foreach (var item in this.pathfindResults.VisitablePoints)
-                {
-                    this.setElement(this.highlights[item.X, item.Y], "bluehighlight");
-                    this.highlights[item.X, item.Y].isVisible = true;
-                    this.highlightedIndicies.Add(item);
-                }
-                foreach (var item in this.pathfindResults.AttackablePoints)
-                {
-                    this.setElement(this.highlights[item.X, item.Y], "redhighlight");
-                    this.highlights[item.X, item.Y].isVisible = true;
-                    this.highlightedIndicies.Add(item);
-                }
+                this.highlightMovableAndAttackable();
                 this.showButtonStrip(this.selectedActor);
             }
         }
@@ -301,6 +310,14 @@ public class MissionPage : GamePage, FSingleTouchableInterface
         }
     }
 
+    private void clearCrossHair()
+    {
+        if (this._childNodes.Contains(this.crosshair))
+        {
+            this.RemoveChild(this.crosshair);
+        }
+    }
+
     private void clearHighlights()
     {
         foreach (var index in this.highlightedIndicies)
@@ -308,6 +325,15 @@ public class MissionPage : GamePage, FSingleTouchableInterface
             this.highlights[index.X, index.Y].isVisible = false;
         }
         this.highlightedIndicies.Clear();
+    }
+
+    private void clearHighlightedPath()
+    {
+        foreach (var item in this.highlightedPath)
+        {
+            this.highlights[item.X, item.Y].element = Futile.atlasManager.GetElementWithName("bluehighlight");
+        }
+        this.highlightedPath.Clear();
     }
 
     private void clearSelection()
@@ -355,16 +381,39 @@ public class MissionPage : GamePage, FSingleTouchableInterface
         }
     }
 
+    private void highlightMovableAndAttackable()
+    {
+        this.clearHighlights();
+        foreach (var item in this.pathfindResults.VisitablePoints)
+        {
+            this.setElement(this.highlights[item.X, item.Y], "bluehighlight");
+            this.highlights[item.X, item.Y].isVisible = true;
+            this.highlightedIndicies.Add(item);
+        }
+        foreach (var item in this.pathfindResults.AttackablePoints)
+        {
+            this.setElement(this.highlights[item.X, item.Y], "redhighlight");
+            this.highlights[item.X, item.Y].isVisible = true;
+            this.highlightedIndicies.Add(item);
+        }
+    }
+
+    private void highlightLocalAttackable()
+    {
+        this.clearHighlights();
+        foreach (var item in this.localAttackablePoints)
+        {
+            this.setElement(this.highlights[item.X, item.Y], "redhighlight");
+            this.highlights[item.X, item.Y].isVisible = true;
+            this.highlightedIndicies.Add(item);
+        }
+    }
+
     private void highlightPath(Vector2i dest)
     {
         if (this.selectedActor != null)
         {
-            foreach (var item in this.highlightedPath)
-            {
-                this.highlights[item.X, item.Y].element = Futile.atlasManager.GetElementWithName("bluehighlight");
-            }
-            this.highlightedPath.Clear();
-
+            this.clearHighlightedPath();
             if (this.pathfindResults.VisitablePoints.Contains(dest))
             {
                 Vector2i p = dest;
