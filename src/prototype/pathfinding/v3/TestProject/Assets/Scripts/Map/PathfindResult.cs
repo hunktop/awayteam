@@ -37,11 +37,18 @@ public class PathfindResult
         }
     }
 
+    public HashSet<Vector2i> AttackablePoints
+    {
+        get;
+        private set;
+    }
+
     public PathfindResult(Vector2i origin)
     {
         this.Origin = origin;
         this.Distance = new Dictionary<Vector2i, int>();
         this.Previous = new Dictionary<Vector2i, Vector2i>();
+        this.AttackablePoints = new HashSet<Vector2i>();
     }
 }
 

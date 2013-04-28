@@ -8,6 +8,24 @@ public class Actor : FSprite
         private set;
     }
 
+    public ActorState TurnState
+    {
+        get;
+        set;
+    }
+
+    public bool HasMovedThisTurn
+    {
+        get;
+        set;
+    }
+        
+    public bool IsEnemy
+    {
+        get;
+        set;
+    }
+
 	public Actor(ActorProperties actorProperties) 
 		: base(actorProperties == null ? "unknown" : actorProperties.SpriteName )
 	{

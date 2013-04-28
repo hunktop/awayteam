@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-public class Map : FContainer, IHandleMouseEvents
+public class Map : FContainer
 {
     #region Private Properties
 
@@ -10,14 +10,7 @@ public class Map : FContainer, IHandleMouseEvents
     private Dictionary<Vector2i, Actor> pointToActor;
     private int tileSize;
     private float halfTileSize;
-    private MouseManager mouseManager;
-    private FSprite blueHighlight;
-    private FSprite redHighlight;
-    private FSprite[,] highlights;
-    private Actor selectedActor;
-    private PathfindResult pathfindResults;
-    private List<Vector2i> highlightedIndicies;
-    
+
     #endregion
 
     #region Properties
@@ -77,21 +70,12 @@ public class Map : FContainer, IHandleMouseEvents
         this.Rows = tileProperties.GetUpperBound(1) + 1;
         this.actorToPoint = new Dictionary<Actor, Vector2i>();
         this.pointToActor = new Dictionary<Vector2i, Actor>();
-        this.highlightedIndicies = new List<Vector2i>();
 
         this.Tiles = new Tile[this.Columns, this.Rows];
-        this.highlights = new FSprite[this.Columns, this.Rows];
         for (int ii = 0; ii < this.Columns; ii++)
         {
             for (int jj = 0; jj < this.Rows; jj++)
             {
-                var highlightSprite = new FSprite("bluehighlight");
-                highlightSprite.x = ii * this.tileSize + this.tileSize / 2;
-                highlightSprite.y = jj * this.tileSize + this.tileSize / 2;
-                highlightSprite.isVisible = false;
-                highlightSprite.width = highlightSprite.height = this.tileSize;
-                this.highlights[ii, jj] = highlightSprite;
-
                 var tile = new Tile(tileProperties[ii,jj]);
                 tile.x = ii * this.tileSize + this.tileSize / 2;
                 tile.y = jj * this.tileSize + this.tileSize / 2;
@@ -99,8 +83,6 @@ public class Map : FContainer, IHandleMouseEvents
                 this.Tiles[ii, jj] = tile;
             }
         }
-
-        this.mouseManager = new MouseManager(this);
     }
 
     #endregion
@@ -128,15 +110,12 @@ public class Map : FContainer, IHandleMouseEvents
 
     #region Public Methods
 
-    private IEnumerable<Tile> YieldTiles()
+    public Vector2i GlobalToGrid(Vector2 point)
     {
-        for (int ii = 0; ii < this.Columns; ii++)
-        {
-            for (int jj = 0; jj < this.Rows; jj++)
-            {
-                yield return this.Tiles[ii, jj];
-            }
-        }
+        var mapCoords = this.GlobalToLocal(point);
+        var gridX = (int)((mapCoords.x / this.tileSize) + 1) - 1;
+        var gridY = (int)((mapCoords.y / this.tileSize) + 1) - 1;
+        return new Vector2i(gridX, gridY);
     }
 
     public void Start()
@@ -152,22 +131,7 @@ public class Map : FContainer, IHandleMouseEvents
         foreach (var actor in this.actorToPoint.Keys)
         {
             AddChild(actor);
-        } 
-        
-        for (int ii = 0; ii < this.Columns; ii++)
-        {
-            for (int jj = 0; jj < this.Rows; jj++)
-            {
-                AddChild(this.highlights[ii, jj]);
-            }
         }
-
-    }
-
-    public void Update()
-    {
-
-        this.mouseManager.Update();
     }
 
     public bool Contains(Vector2i c)
@@ -175,14 +139,9 @@ public class Map : FContainer, IHandleMouseEvents
         return (c.Y >= 0 && c.Y < this.Rows) && (c.X >= 0 && c.X < this.Columns);
     }
     
-    public Vector2i? GetLocation(Actor actor)
+    public bool TryGetLocation(Actor actor, out Vector2i location)
     {
-        Vector2i location;
-        if (this.actorToPoint.TryGetValue(actor, out location))
-        {
-            return location;
-        }
-        return null;
+        return this.actorToPoint.TryGetValue(actor, out location);
     }
 
     #endregion
@@ -194,9 +153,11 @@ public class Map : FContainer, IHandleMouseEvents
         return this.pointToActor.TryGetValue(location, out actor);
     }
 
-    public void AddActor(ActorProperties actorProperties, Vector2i location)
+    public void AddActor(ActorProperties actorProperties, Vector2i location, bool isEnemy = false)
     {
         var actor = new Actor(actorProperties);
+        actor.TurnState = ActorState.TurnStart;
+        actor.IsEnemy = isEnemy;
         actor.x = this.tileSize * location.X + this.halfTileSize;
         actor.y = this.tileSize * location.Y + this.halfTileSize;
         actor.width = actor.height = this.tileSize;
@@ -223,53 +184,17 @@ public class Map : FContainer, IHandleMouseEvents
 
     #endregion
 
-    #region Mouse Event Handlers
-
-    public void MouseClicked(MouseEvent e)
-    {
-        var gridX = (int)((e.LocalCoordinates.x / this.tileSize) + 1) - 1;
-        var gridY = (int)((e.LocalCoordinates.y / this.tileSize) + 1) - 1;
-        var gridVector = new Vector2i(gridX, gridY);
-
-        if (this.selectedActor != null)
-        {
-            if (this.pathfindResults != null && this.pathfindResults.VisitablePoints.Contains(gridVector))
-            {
-                this.UpdateLocation(this.selectedActor, gridVector);
-                this.ClearSelection();
-            }
-        }
-        else if (this.TryGetActor(gridVector, out this.selectedActor))
-        {   
-            this.pathfindResults = Pathfinder.Pathfind(this, this.selectedActor);
-            foreach (var item in this.pathfindResults.VisitablePoints)
-            {
-                this.highlights[item.X, item.Y].isVisible = true;
-                this.highlightedIndicies.Add(item);
-            }
-        }        
-    }
-
-    public void MousePressed(MouseEvent e)
-    {
-    }
-
-    public void MouseReleased(MouseEvent e)
-    {
-    }
-
-    #endregion
-
     #region Private Methods
 
-    private void ClearSelection()
+    private IEnumerable<Tile> YieldTiles()
     {
-        foreach (var index in this.highlightedIndicies)
+        for (int ii = 0; ii < this.Columns; ii++)
         {
-            this.highlights[index.X, index.Y].isVisible = false;
+            for (int jj = 0; jj < this.Rows; jj++)
+            {
+                yield return this.Tiles[ii, jj];
+            }
         }
-        this.highlightedIndicies.Clear();
-        this.selectedActor = null;
     }
 
     private IEnumerable<Vector2i> GetPointsAtDistance(Vector2i start, int dist)
