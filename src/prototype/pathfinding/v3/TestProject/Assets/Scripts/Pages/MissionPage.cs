@@ -60,8 +60,8 @@ public class MissionPage : GamePage, FSingleTouchableInterface
         // Add a few actors to the map
         this.map = new Map(tiles, tileSize);
         this.map.AddActor(StaticActors.GoodSoldier, new Vector2i(5, 5));
-        this.map.AddActor(StaticActors.GoodSoldier, new Vector2i(5, 3));
-        this.map.AddActor(StaticActors.EvilSoldier, new Vector2i(7, 4), true);
+        this.map.AddActor(StaticActors.GoodSoldier, new Vector2i(5, 6));
+        this.map.AddActor(StaticActors.EvilSoldier, new Vector2i(5, 7), true);
         this.map.Start();
         this.AddChild(this.map);
 
@@ -104,8 +104,10 @@ public class MissionPage : GamePage, FSingleTouchableInterface
     #region Update
 
     /// <summary>
-    /// Right now the Update just handles mouse-over events (look at the position of
-    /// the mouse and figure out if we have to change the display in some way).
+    /// Update does a few things at the moment:
+    /// - Handles mouse-over events (look at the position of the mouse and figure out if 
+    ///   we have to change the display in some way).
+    /// - Handles key presses
     /// </summary>
     public override void  Update()
     {
@@ -196,6 +198,7 @@ public class MissionPage : GamePage, FSingleTouchableInterface
     public void HandleSingleTouchEnded(FTouch touch)
     {
         var gridVector = this.map.GlobalToGrid(touch.position);
+        Debug.Log("Touch at: " + touch.position + ", map grid: " + gridVector);
 
         if (this.selectedActor != null)
         {
@@ -209,7 +212,7 @@ public class MissionPage : GamePage, FSingleTouchableInterface
                     this.map.UpdateLocation(this.selectedActor, gridVector);
 
                     // Recompute the set of attackable points, since the actor has moved.
-                    var tempEnum = MoveAndAttackHelper.GetAttackablePoints(this.map, gridVector, 1, 2);
+                    var tempEnum = MoveAndAttackHelper.GetAttackablePoints(this.map, gridVector, 1, 6);
                     this.localAttackablePoints = new HashSet<Vector2i>(tempEnum);
                     this.showButtonStrip(this.selectedActor);
                     this.clearHighlights();
@@ -220,6 +223,9 @@ public class MissionPage : GamePage, FSingleTouchableInterface
                 if (this.localAttackablePoints.Contains(gridVector))
                 {
                     Debug.Log("Attacking point: " + gridVector);
+                    Vector2 source = new Vector2(this.selectedActor.x, this.selectedActor.y);
+                    Vector2 dest = this.map.GridToGlobal(gridVector);
+                    this.ShootLaser(source, dest);
                 }
             }
         }
@@ -230,7 +236,7 @@ public class MissionPage : GamePage, FSingleTouchableInterface
             {
                 this.selectedActor.TurnState = ActorState.AwaitingCommand;
                 this.pathfindResults = MoveAndAttackHelper.Pathfind(this.map, this.selectedActor);
-                var tempEnum = MoveAndAttackHelper.GetAttackablePoints(this.map, gridVector, 1, 2);
+                var tempEnum = MoveAndAttackHelper.GetAttackablePoints(this.map, gridVector, 1, 6);
                 this.localAttackablePoints = new HashSet<Vector2i>(tempEnum);
                 this.showButtonStrip(this.selectedActor);
             }
@@ -284,6 +290,14 @@ public class MissionPage : GamePage, FSingleTouchableInterface
     #endregion
 
     #region Private Methods
+
+    private void ShootLaser(Vector2 start, Vector2 end)
+    {
+        var phaserShot = new PhaserShotAnimation(start, end);
+        phaserShot.Start();
+        phaserShot.Delay = 10;
+        this.AddChild(phaserShot);
+    }
 
     private void setElement(FSprite sprite, string name)
     {

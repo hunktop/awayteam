@@ -185,13 +185,6 @@ public static class ShadowCaster
         }
     }
 
-    //// Is the lower-left corner of cell (x,y) within the radius?
-    //private static bool IsInRadius(int x, int y, int length)
-    //{
-    //    //return (2 * x - 1) * (2 * x - 1) + (2 * y - 1) * (2 * y - 1) <= 4 * length * length;
-    //    return x + y <= length;
-    //}
-
     private struct DirectionVector
     {
         public int X { get; private set; }

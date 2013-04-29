@@ -40,6 +40,7 @@ public class GameMain : MonoBehaviour
         Futile.atlasManager.LoadImage("goodsoldier");
         Futile.atlasManager.LoadImage("bluehighlight");
         Futile.atlasManager.LoadImage("redhighlight");
+        Futile.atlasManager.LoadImage("phaser");
         Futile.atlasManager.LoadImage("doublebluehighlight");
         Futile.atlasManager.LoadImage("attack");
         Futile.atlasManager.LoadImage("defend");

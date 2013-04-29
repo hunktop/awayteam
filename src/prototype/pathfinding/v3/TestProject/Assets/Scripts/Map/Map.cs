@@ -118,6 +118,14 @@ public class Map : FContainer
         return new Vector2i(gridX, gridY);
     }
 
+    public Vector2 GridToGlobal(Vector2i grid)
+    {
+        var globalx = grid.X * this.tileSize + this.tileSize / 2;
+        var globaly = grid.Y * this.tileSize + this.tileSize / 2;
+        return new Vector2i(globalx, globaly);
+    }
+
+
     public void Start()
     {
         // Why do this?  Because Futile likes sprite with the same image to be loaded at the same time
@@ -152,6 +160,11 @@ public class Map : FContainer
     public bool TryGetActor(Vector2i location, out Actor actor)
     {
         return this.pointToActor.TryGetValue(location, out actor);
+    }
+
+    public bool ContainsActor(Vector2i location)
+    {
+        return this.pointToActor.ContainsKey(location);
     }
 
     public void AddActor(ActorProperties actorProperties, Vector2i location, bool isEnemy = false)

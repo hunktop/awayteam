@@ -16,7 +16,7 @@ public class MoveAndAttackHelper
 
         var result = new PathfindResult(start);
         var frontier = new PriorityQueue<Vector2i>();
-        var potentialAttackablePoints = new HashSet<Vector2i>();
+        //var potentialAttackablePoints = new HashSet<Vector2i>();
 
         result.Distance.Add(new Vector2i(start.X, start.Y), 0);
         frontier.Insert(start, 0);
@@ -25,10 +25,10 @@ public class MoveAndAttackHelper
         {
             var min = frontier.ExtractMin();
 
-            foreach (var point in GetAttackablePoints(map, min.Key, 1, 2))
-            {
-                potentialAttackablePoints.Add(point);
-            }
+            //foreach (var point in GetAttackablePoints(map, min.Key, 1, 2))
+            //{
+            //    potentialAttackablePoints.Add(point);
+            //}
 
             foreach (var adj in GetAdjacentCoordinates(map, min.Key))
             {
@@ -57,22 +57,29 @@ public class MoveAndAttackHelper
             }
         }
 
-        var attackablePoints = potentialAttackablePoints.Except(result.VisitablePoints);
-        foreach (var point in attackablePoints)
-        {
-            result.AttackablePoints.Add(point);
-        }
+        //var attackablePoints = potentialAttackablePoints.Except(result.VisitablePoints);
+        //foreach (var point in attackablePoints)
+        //{
+        //    result.AttackablePoints.Add(point);
+        //}
 
         return result;
     }
 
     public static IEnumerable<Vector2i> GetAttackablePoints(Map map, Vector2i start, int minRange, int maxRange)
     {
+
+        HashSet<Vector2i> visible = new HashSet<Vector2i>();
+        ShadowCaster.ComputeFieldOfViewWithShadowCasting(start.X, start.Y, maxRange,
+            (x, y) => !(x == start.X && y == start.Y) && map.ContainsActor(new Vector2i(x, y)),
+            (x, y) => visible.Add(new Vector2i(x, y)),
+            (x, y, z) => x + y <= z);
+
         for (int ii = minRange; ii <= maxRange; ii++)
         {
             foreach (var point in GetPointsAtDistance(start, ii))
             {
-                if (map.Contains(point))
+                if (map.Contains(point) && visible.Contains(point))
                 {
                     Actor inhabitant;
                     if (map.TryGetActor(point, out inhabitant) && !inhabitant.IsEnemy)
@@ -84,19 +91,6 @@ public class MoveAndAttackHelper
                 }
             }
         }
-    }
-
-    public static bool CanAttack(Actor attacker, Map map)
-    {
-        Vector2i location;
-        if (map.TryGetLocation(attacker, out location))
-        {
-            var points = GetAttackablePoints(map, location, 1, 2);
-            Actor defender;
-            return points.Any(p => map.TryGetActor(p, out defender) && defender.IsEnemy);
-        }
-
-        return false;
     }
 
     #endregion
