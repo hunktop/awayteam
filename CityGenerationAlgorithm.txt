@@ -1,0 +1,11 @@
+General Outline
+	1) Generate terrain height map
+		* Perlin noise
+		* Generate water? Use certain height values to indicate water level?
+	2) Generate roads
+	
+
+
+Pseudocode
+	* Perlin Noise
+		
