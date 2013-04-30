@@ -15,22 +15,23 @@ public class MissionPage : GamePage, FSingleTouchableInterface
     private Actor selectedActor; 
     private PathfindResult pathfindResults;
 
+    // Some book-keeping lists/sets
+    private List<Vector2i> highlightedPath;
+    private HashSet<Vector2i> localAttackablePoints;
+    private HashSet<Vector2i> highlightedIndicies;
+
     private FSprite blueHighlight;
     private FSprite redHighlight;
     private FSprite crosshair;
     private FSprite[,] highlights;
-    
     private FButton moveButton;
     private FButton attackButton;
     private FButton cancelButton;
     private FButton waitButton;
     private FButton useItemButton;
     private ButtonStrip buttonStrip;
-    
-    private List<Vector2i> highlightedPath;
-    private HashSet<Vector2i> localAttackablePoints;
-    private HashSet<Vector2i> highlightedIndicies;
-
+    private PhaserShotAnimation phaserShot;
+   
     #endregion
 
     #region Start
@@ -296,7 +297,18 @@ public class MissionPage : GamePage, FSingleTouchableInterface
         var phaserShot = new PhaserShotAnimation(start, end);
         phaserShot.Start();
         phaserShot.Delay = 10;
+        phaserShot.AnimationStopped += new EventHandler<AnimationEventArgs>(this.phaserShot_AnimationStopped);
         this.AddChild(phaserShot);
+        phaserShot.Play();
+    }
+
+    private void phaserShot_AnimationStopped(object sender, AnimationEventArgs args)
+    {
+        if (args.StoppedReason == StoppedReason.Complete)
+        {
+            Debug.Log("Removing phaser " + sender);
+            this.RemoveChild(sender as FNode);
+        }
     }
 
     private void setElement(FSprite sprite, string name)

@@ -1,5 +1,8 @@
-﻿class CombatEngine
+﻿public abstract class CombatEngine
 {
-    //TBD
+    public abstract CombatResult ResolveCombat(
+        Actor attacker,
+        Actor defender,
+        Map map);
 }
 

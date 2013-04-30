@@ -5,12 +5,15 @@ class PhaserShotAnimation : AnimationCanvas
     private Vector2 end;
     private Vector2 translated;
     private float velocity = 6f;
+    private float fadeRate = 0.05f;
     private FSprite laser;
+    private bool done;
 
     public PhaserShotAnimation(Vector2 s, Vector2 e)
     {
         this.start = s;
         this.end = e;
+        this.done = false;
 
         // Translate end into the coordinate system where start is the origin
         this.translated = this.end - this.start;
@@ -36,12 +39,23 @@ class PhaserShotAnimation : AnimationCanvas
 
     public override bool AnimationComplete()
     {
-        return this.laser.width >= this.translated.magnitude;
+        return this.done;
     }
 
     public override void PrepareFrame()
     {
-        this.laser.width += this.velocity;
+        if (this.laser.width < this.translated.magnitude)
+        {
+            this.laser.width += this.velocity;
+        }
+        else if (laser.alpha > 0)
+        {
+            this.laser.alpha -= this.fadeRate;
+        }
+        else
+        {
+            this.done = true;
+        }
         base.PrepareFrame();
     }
 }

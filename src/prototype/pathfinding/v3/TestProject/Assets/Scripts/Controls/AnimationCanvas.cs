@@ -1,4 +1,22 @@
 ﻿using UnityEngine;
+using System;
+
+public enum StoppedReason 
+{
+    None, 
+    Complete,
+    Paused,
+    Error
+}
+
+public class AnimationEventArgs : EventArgs 
+{
+    public StoppedReason StoppedReason
+    {
+        get;
+        set;
+    }
+}
 
 /// <summary>
 /// A very rudimentary class for animating stuff in an FContainer.
@@ -7,10 +25,14 @@
 /// Doesn't do much by itself, subclasses are expected to implement the 
 /// animation behavior.
 /// </summary>
-class AnimationCanvas : FContainer
+public class AnimationCanvas : FContainer
 {
-    private bool pause;
+    private bool paused;
+    private bool complete;
     private float time;
+
+    public event EventHandler<AnimationEventArgs> AnimationStarted;
+    public event EventHandler<AnimationEventArgs> AnimationStopped;
 
     public int Delay
     {
@@ -18,14 +40,44 @@ class AnimationCanvas : FContainer
         set;
     }
 
+    public bool Running
+    {
+        get
+        {
+            return !this.paused && !this.complete;
+        }
+    }
+
+    public AnimationCanvas()
+        : this(false)
+    {
+
+    }
+
+    public AnimationCanvas(bool playWhenAdded)
+    {
+        this.paused = playWhenAdded;
+    }
+
     public void Pause()
     {
-        this.pause = true;
+        if (!this.paused)
+        {
+            this.paused = true;
+            this.OnAnimationStopped(StoppedReason.Paused);
+        }
     }
 
     public void Play()
     {
-        this.pause = false;
+        if (this.complete)
+        {
+            return;
+        } else if (this.paused)
+        {
+            this.paused = false;
+            this.OnAnimationStarted();
+        }
     }
 
     /// <summary>
@@ -34,6 +86,7 @@ class AnimationCanvas : FContainer
     /// </summary>
     public virtual void Start()
     {
+
     }
 
     /// <summary>
@@ -61,17 +114,21 @@ class AnimationCanvas : FContainer
     /// </summary>
     public virtual void Update()
     {
-        if (!this.pause)
+        if (!this.paused)
         {
             time += Time.deltaTime;
-            while (time > (float) this.Delay / 1000.0f)
+            while (time > (float)this.Delay / 1000.0f)
             {
                 if (this.AnimationComplete())
                 {
+                    this.complete = true;
+                    this.paused = true;
+                    this.OnAnimationStopped(StoppedReason.Complete);
                     break;
                 }
+
                 this.PrepareFrame();
-                time -= (float) this.Delay / 1000.0f;
+                time -= (float)this.Delay / 1000.0f;
             }
         }
     }
@@ -80,17 +137,39 @@ class AnimationCanvas : FContainer
     {
     }
 
-    override public void HandleAddedToStage()
+    public override void HandleAddedToStage()
     {
         Futile.instance.SignalUpdate += Update;
         Futile.screen.SignalResize += Resize;
         base.HandleAddedToStage();
     }
 
-    override public void HandleRemovedFromStage()
+    public override void HandleRemovedFromStage()
     {
         Futile.instance.SignalUpdate -= Update;
         Futile.screen.SignalResize -= Resize;
         base.HandleRemovedFromStage();
+    }
+
+    protected virtual void OnAnimationStarted()
+    {
+        var handler = this.AnimationStarted;
+        if (handler != null)
+        {
+            var args = new AnimationEventArgs();
+            args.StoppedReason = StoppedReason.None;
+            handler(this, args);
+        }
+    }
+
+    protected virtual void OnAnimationStopped(StoppedReason reason)
+    {
+        var handler = this.AnimationStopped;
+        if (handler != null)
+        {
+            var args = new AnimationEventArgs();
+            args.StoppedReason = reason;
+            handler(this, args);
+        }
     }
 }

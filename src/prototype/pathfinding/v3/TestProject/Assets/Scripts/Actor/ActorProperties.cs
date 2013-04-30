@@ -20,4 +20,6 @@ public class ActorProperties
         get;
         set;
     }
+
+
 }
