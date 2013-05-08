@@ -1,0 +1,477 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 9.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[     20353,        468]
+NotebookOptionsPosition[     19861,        447]
+NotebookOutlinePosition[     20217,        463]
+CellTagsIndexPosition[     20174,        460]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"tileGrass", "=", "\"\<grass\>\""}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"tileForest", "=", "\"\<forest\>\""}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"tileFloor", "=", "\"\<floor\>\""}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"tileWall", "=", "\"\<wall\>\""}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"tileSpacer", "=", "\"\<spacer\>\""}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"tileError", "=", "\"\<error\>\""}], ";"}]}], "Input",
+ CellChangeTimes->{{3.576687600718073*^9, 3.5766878460360603`*^9}, {
+  3.576688396985708*^9, 3.5766884027000017`*^9}, {3.5766898750205812`*^9, 
+  3.576689887851618*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"TestMap", "[", 
+    RowBox[{"wid_", ",", "hei_"}], "]"}], ":=", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"map", ",", "rr", ",", "cc"}], "}"}], ",", 
+     "\[IndentingNewLine]", 
+     RowBox[{"map", "=", 
+      RowBox[{"Table", "[", 
+       RowBox[{
+        RowBox[{"RandomChoice", "[", 
+         RowBox[{"{", 
+          RowBox[{
+          "tileFloor", ",", "tileForest", ",", "tileGrass", ",", "tileWall"}],
+           "}"}], "]"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"rr", ",", "hei"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"cc", ",", "wid"}], "}"}]}], "]"}]}]}], 
+    "\[IndentingNewLine]", "]"}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.576687849519635*^9, 3.576687955585249*^9}, {
+  3.57668798920989*^9, 3.576688021919119*^9}, {3.5766892453419533`*^9, 
+  3.5766892505981627`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"RenderMap", "[", "map_", "]"}], ":=", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"txt", ",", "i", ",", "j", ",", "curr"}], "}"}], ",", 
+     "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"txt", "=", "\"\<\>\""}], ";", "\[IndentingNewLine]", 
+      RowBox[{"For", "[", 
+       RowBox[{
+        RowBox[{"i", "=", "1"}], ",", 
+        RowBox[{"i", "\[LessEqual]", 
+         RowBox[{"Length", "@", "map"}]}], ",", 
+        RowBox[{"i", "++"}], ",", "\[IndentingNewLine]", 
+        RowBox[{
+         RowBox[{"For", "[", 
+          RowBox[{
+           RowBox[{"j", "=", "1"}], ",", 
+           RowBox[{"j", "\[LessEqual]", 
+            RowBox[{"Length", "@", "map"}]}], ",", 
+           RowBox[{"j", "++"}], ",", "\[IndentingNewLine]", 
+           RowBox[{
+            RowBox[{"curr", "=", 
+             RowBox[{"map", "[", 
+              RowBox[{"[", 
+               RowBox[{"i", ",", "j"}], "]"}], "]"}]}], ";", 
+            "\[IndentingNewLine]", 
+            RowBox[{"If", "[", 
+             RowBox[{
+              RowBox[{"curr", "\[Equal]", "tileError"}], ",", 
+              "\[IndentingNewLine]", 
+              RowBox[{"txt", "=", 
+               RowBox[{"txt", "<>", "\"\<XXXX\>\""}]}], ",", 
+              "\[IndentingNewLine]", 
+              RowBox[{"If", "[", 
+               RowBox[{
+                RowBox[{"curr", "\[Equal]", "tileWall"}], ",", 
+                "\[IndentingNewLine]", 
+                RowBox[{"txt", "=", 
+                 RowBox[{"txt", "<>", "\"\< || \>\""}]}], ",", 
+                "\[IndentingNewLine]", 
+                RowBox[{"If", "[", 
+                 RowBox[{
+                  RowBox[{"curr", "\[Equal]", "tileForest"}], ",", 
+                  "\[IndentingNewLine]", 
+                  RowBox[{"txt", "=", 
+                   RowBox[{"txt", "<>", "\"\< /\\\\ \>\""}]}], ",", 
+                  "\[IndentingNewLine]", 
+                  RowBox[{"If", "[", 
+                   RowBox[{
+                    RowBox[{"curr", "\[Equal]", "tileFloor"}], ",", 
+                    "\[IndentingNewLine]", 
+                    RowBox[{"txt", "=", 
+                    RowBox[{"txt", "<>", "\"\< .. \>\""}]}], ",", 
+                    "\[IndentingNewLine]", 
+                    RowBox[{"If", "[", 
+                    RowBox[{
+                    RowBox[{"curr", "\[Equal]", "tileGrass"}], ",", 
+                    "\[IndentingNewLine]", 
+                    RowBox[{"txt", "=", 
+                    RowBox[{"txt", "<>", "\"\< ,, \>\""}]}], ",", 
+                    "\[IndentingNewLine]", 
+                    RowBox[{"If", "[", 
+                    RowBox[{
+                    RowBox[{"curr", "\[Equal]", "tileSpacer"}], ",", 
+                    "\[IndentingNewLine]", 
+                    RowBox[{"txt", "=", 
+                    RowBox[{"txt", "<>", "\"\< ss \>\""}]}], ",", 
+                    "\[IndentingNewLine]", 
+                    RowBox[{"txt", "=", 
+                    RowBox[{"txt", "<>", "\"\<XXXX\>\""}]}]}], 
+                    "\[IndentingNewLine]", "]"}]}], "]"}]}], "]"}]}], "]"}]}],
+                "]"}]}], "]"}], ";"}]}], "\[IndentingNewLine]", "]"}], ";", 
+         "\[IndentingNewLine]", 
+         RowBox[{"txt", "=", 
+          RowBox[{"txt", "<>", "\"\<\\n\>\""}]}], ";"}]}], 
+       "\[IndentingNewLine]", "]"}], ";", "\[IndentingNewLine]", "txt"}]}], 
+    "\[IndentingNewLine]", "]"}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.576689896509082*^9, 3.5766899045327883`*^9}, {
+  3.57669028599745*^9, 3.576690313332531*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{
+    RowBox[{"GenMap", "[", 
+     RowBox[{"wid_", ",", "hei_", ",", 
+      RowBox[{"gutter_:", "2"}], ",", 
+      RowBox[{"maxBuildings_:", "3"}], ",", 
+      RowBox[{"buildingScale_:", "1"}]}], "]"}], ":=", 
+    RowBox[{"Module", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+       "map", ",", "row", ",", "col", ",", "sanityCheck", ",", "numBuildings",
+         ",", "randWid", ",", "randHei", ",", "randStartRow", ",", 
+        "randStartCol", ",", "placeFree", ",", "rr", ",", "cc"}], "}"}], ",", 
+      "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"map", "=", 
+        RowBox[{"Table", "[", 
+         RowBox[{"tileError", ",", 
+          RowBox[{"{", 
+           RowBox[{"rr", ",", "hei"}], "}"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"cc", ",", "wid"}], "}"}]}], "]"}]}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"For", "[", 
+        RowBox[{
+         RowBox[{"row", "=", "1"}], ",", 
+         RowBox[{"row", "\[LessEqual]", "hei"}], ",", 
+         RowBox[{"row", "++"}], ",", "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{"For", "[", 
+           RowBox[{
+            RowBox[{"col", "=", "1"}], ",", 
+            RowBox[{"col", "\[LessEqual]", "wid"}], ",", 
+            RowBox[{"col", "++"}], ",", "\[IndentingNewLine]", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"map", "[", 
+               RowBox[{"[", 
+                RowBox[{"row", ",", "col"}], "]"}], "]"}], "=", "tileGrass"}],
+              ";"}]}], "\[IndentingNewLine]", "]"}], ";"}]}], 
+        "\[IndentingNewLine]", "]"}], ";", "\[IndentingNewLine]", 
+       RowBox[{"sanityCheck", "=", "0"}], ";", "\[IndentingNewLine]", 
+       RowBox[{"numBuildings", "=", "0"}], ";", "\[IndentingNewLine]", 
+       RowBox[{"While", "[", 
+        RowBox[{
+         RowBox[{"And", "[", 
+          RowBox[{
+           RowBox[{"sanityCheck", "<", "100"}], ",", 
+           RowBox[{"numBuildings", "<", "maxBuildings"}]}], "]"}], ",", 
+         "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{"randWid", "=", 
+           RowBox[{"RandomInteger", "[", 
+            RowBox[{"{", 
+             RowBox[{"gutter", ",", 
+              RowBox[{"Ceiling", "[", 
+               RowBox[{
+                RowBox[{"(", 
+                 RowBox[{"wid", "-", "gutter"}], ")"}], "/", 
+                "buildingScale"}], "]"}]}], "}"}], "]"}]}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{"randHei", "=", 
+           RowBox[{"RandomInteger", "[", 
+            RowBox[{"{", 
+             RowBox[{"gutter", ",", 
+              RowBox[{"Ceiling", "[", 
+               RowBox[{
+                RowBox[{"(", 
+                 RowBox[{"hei", "-", "gutter"}], ")"}], "/", 
+                "buildingScale"}], "]"}]}], "}"}], "]"}]}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{"randStartRow", "=", 
+           RowBox[{"RandomInteger", "[", 
+            RowBox[{"{", 
+             RowBox[{"1", ",", 
+              RowBox[{"hei", "-", "randHei"}]}], "}"}], "]"}]}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{"randStartCol", "=", 
+           RowBox[{"RandomInteger", "[", 
+            RowBox[{"{", 
+             RowBox[{"1", ",", 
+              RowBox[{"wid", "-", "randWid"}]}], "}"}], "]"}]}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{"(*", 
+           RowBox[{
+            RowBox[{"Print", "[", 
+             RowBox[{
+             "\"\<(wid,hei): (\>\"", ",", "randWid", ",", "\"\<,\>\"", ",", 
+              "randHei", ",", "\"\<)  (startrow,startcol): (\>\"", ",", 
+              "randStartRow", ",", "\"\<,\>\"", ",", "randStartCol", ",", 
+              "\"\<)\>\""}], "]"}], ";"}], "*)"}], "\[IndentingNewLine]", 
+          RowBox[{"placeFree", "=", "True"}], ";", "\[IndentingNewLine]", 
+          RowBox[{"For", "[", 
+           RowBox[{
+            RowBox[{"rr", "=", "randStartRow"}], ",", 
+            RowBox[{"rr", "\[LessEqual]", 
+             RowBox[{"randStartRow", "+", "randHei"}]}], ",", 
+            RowBox[{"rr", "++"}], ",", "\[IndentingNewLine]", 
+            RowBox[{
+             RowBox[{"For", "[", 
+              RowBox[{
+               RowBox[{"cc", "=", "randStartCol"}], ",", 
+               RowBox[{"cc", "\[LessEqual]", 
+                RowBox[{"randStartCol", "+", "randWid"}]}], ",", 
+               RowBox[{"cc", "++"}], ",", "\[IndentingNewLine]", 
+               RowBox[{
+                RowBox[{"If", "[", 
+                 RowBox[{
+                  RowBox[{"Or", "[", 
+                   RowBox[{
+                    RowBox[{
+                    RowBox[{"map", "[", 
+                    RowBox[{"[", 
+                    RowBox[{"rr", ",", "cc"}], "]"}], "]"}], "\[Equal]", 
+                    "tileWall"}], ",", 
+                    RowBox[{
+                    RowBox[{"map", "[", 
+                    RowBox[{"[", 
+                    RowBox[{"rr", ",", "cc"}], "]"}], "]"}], "\[Equal]", 
+                    "tileFloor"}], ",", 
+                    RowBox[{
+                    RowBox[{"map", "[", 
+                    RowBox[{"[", 
+                    RowBox[{"rr", ",", "cc"}], "]"}], "]"}], "\[Equal]", 
+                    "tileSpacer"}]}], "]"}], ",", "\[IndentingNewLine]", 
+                  RowBox[{
+                   RowBox[{"placeFree", "=", "False"}], ";", 
+                   "\[IndentingNewLine]", 
+                   RowBox[{"Break", "[", "]"}], ";"}]}], 
+                 "\[IndentingNewLine]", "]"}], ";"}]}], "\[IndentingNewLine]",
+               "]"}], ";"}]}], "\[IndentingNewLine]", "]"}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{"If", "[", 
+           RowBox[{"placeFree", ",", "\[IndentingNewLine]", 
+            RowBox[{
+             RowBox[{"For", "[", 
+              RowBox[{
+               RowBox[{"rr", "=", "randStartRow"}], ",", 
+               RowBox[{"rr", "\[LessEqual]", 
+                RowBox[{"randStartRow", "+", "randHei"}]}], ",", 
+               RowBox[{"rr", "++"}], ",", "\[IndentingNewLine]", 
+               RowBox[{
+                RowBox[{"For", "[", 
+                 RowBox[{
+                  RowBox[{"cc", "=", "randStartCol"}], ",", 
+                  RowBox[{"cc", "\[LessEqual]", 
+                   RowBox[{"randStartCol", "+", "randWid"}]}], ",", 
+                  RowBox[{"cc", "++"}], ",", "\[IndentingNewLine]", 
+                  RowBox[{
+                   RowBox[{"If", "[", 
+                    RowBox[{
+                    RowBox[{"Or", "[", 
+                    RowBox[{
+                    RowBox[{"rr", "\[Equal]", "randStartRow"}], ",", 
+                    RowBox[{"rr", "\[Equal]", 
+                    RowBox[{"randStartRow", "+", "randHei"}]}], ",", 
+                    RowBox[{"cc", "\[Equal]", "randStartCol"}], ",", 
+                    RowBox[{"cc", "\[Equal]", 
+                    RowBox[{"randStartCol", "+", "randWid"}]}]}], "]"}], ",", 
+                    "\[IndentingNewLine]", 
+                    RowBox[{
+                    RowBox[{"map", "[", 
+                    RowBox[{"[", 
+                    RowBox[{"rr", ",", "cc"}], "]"}], "]"}], "=", 
+                    "tileWall"}], ",", "\[IndentingNewLine]", 
+                    RowBox[{
+                    RowBox[{"map", "[", 
+                    RowBox[{"[", 
+                    RowBox[{"rr", ",", "cc"}], "]"}], "]"}], "=", 
+                    "tileFloor"}]}], "\[IndentingNewLine]", "]"}], ";"}]}], 
+                 "\[IndentingNewLine]", "]"}], ";"}]}], "\[IndentingNewLine]",
+               "]"}], ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
+             RowBox[{"For", "[", 
+              RowBox[{
+               RowBox[{"cc", "=", "randStartCol"}], ",", 
+               RowBox[{"cc", "\[LessEqual]", 
+                RowBox[{"randStartCol", "+", "randWid"}]}], ",", 
+               RowBox[{"cc", "++"}], ",", "\[IndentingNewLine]", 
+               RowBox[{
+                RowBox[{"If", "[", 
+                 RowBox[{
+                  RowBox[{"randStartRow", ">", "1"}], ",", 
+                  RowBox[{
+                   RowBox[{
+                    RowBox[{"map", "[", 
+                    RowBox[{"[", 
+                    RowBox[{
+                    RowBox[{"randStartRow", "-", "1"}], ",", "cc"}], "]"}], 
+                    "]"}], "=", "tileSpacer"}], ";"}]}], "]"}], ";", 
+                "\[IndentingNewLine]", 
+                RowBox[{"If", "[", 
+                 RowBox[{
+                  RowBox[{
+                   RowBox[{"randStartRow", "+", "randHei"}], "<", "hei"}], 
+                  ",", 
+                  RowBox[{
+                   RowBox[{"map", "[", 
+                    RowBox[{"[", 
+                    RowBox[{
+                    RowBox[{"randStartRow", "+", "randHei", "+", "1"}], ",", 
+                    "cc"}], "]"}], "]"}], "=", "tileSpacer"}]}], "]"}], 
+                ";"}]}], "\[IndentingNewLine]", "]"}], ";", 
+             "\[IndentingNewLine]", 
+             RowBox[{"For", "[", 
+              RowBox[{
+               RowBox[{"rr", "=", "randStartRow"}], ",", 
+               RowBox[{"rr", "\[LessEqual]", 
+                RowBox[{"randStartRow", "+", "randHei"}]}], ",", 
+               RowBox[{"rr", "++"}], ",", "\[IndentingNewLine]", 
+               RowBox[{
+                RowBox[{"If", "[", 
+                 RowBox[{
+                  RowBox[{"randStartCol", ">", "1"}], ",", 
+                  RowBox[{
+                   RowBox[{
+                    RowBox[{"map", "[", 
+                    RowBox[{"[", 
+                    RowBox[{"rr", ",", 
+                    RowBox[{"randStartCol", "-", "1"}]}], "]"}], "]"}], "=", 
+                    "tileSpacer"}], ";"}]}], "]"}], ";", 
+                "\[IndentingNewLine]", 
+                RowBox[{"If", "[", 
+                 RowBox[{
+                  RowBox[{
+                   RowBox[{"randStartCol", "+", "randWid"}], "<", "wid"}], 
+                  ",", 
+                  RowBox[{
+                   RowBox[{"map", "[", 
+                    RowBox[{"[", 
+                    RowBox[{"rr", ",", 
+                    RowBox[{"randStartCol", "+", "randWid", "+", "1"}]}], 
+                    "]"}], "]"}], "=", "tileSpacer"}]}], "]"}], ";"}]}], 
+              "\[IndentingNewLine]", "]"}], ";", "\[IndentingNewLine]", 
+             "\[IndentingNewLine]", "\[IndentingNewLine]", 
+             RowBox[{"numBuildings", "++"}], ";"}]}], "\[IndentingNewLine]", 
+           "]"}], ";", "\[IndentingNewLine]", 
+          RowBox[{"sanityCheck", "++"}], ";"}]}], "\[IndentingNewLine]", 
+        "]"}], ";", "\[IndentingNewLine]", "map"}]}], "\[IndentingNewLine]", 
+     "]"}]}], ";"}], "\[IndentingNewLine]"}]], "Input",
+ CellChangeTimes->{{3.576688374711315*^9, 3.5766883908632298`*^9}, {
+   3.57668843396972*^9, 3.576688490770207*^9}, {3.576688537649091*^9, 
+   3.576688878640334*^9}, {3.5766891090792837`*^9, 3.57668929850673*^9}, {
+   3.57668936542096*^9, 3.576689522864683*^9}, {3.5766896060686817`*^9, 
+   3.576689615637452*^9}, 3.576689656477647*^9, {3.576689692782125*^9, 
+   3.5766896962688923`*^9}, {3.5766898095623083`*^9, 3.576689855213908*^9}, {
+   3.576689963174911*^9, 3.576690261504479*^9}, {3.5766903545163927`*^9, 
+   3.576690404099596*^9}, {3.5766904398160133`*^9, 3.576690450066483*^9}, {
+   3.576691552087541*^9, 3.5766916007258244`*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"RenderMap", "@", 
+  RowBox[{"GenMap", "[", 
+   RowBox[{"20", ",", "20", ",", "2", ",", "3", ",", "2"}], "]"}]}]], "Input",\
+
+ CellChangeTimes->{{3.57668930794088*^9, 3.576689315917655*^9}, {
+  3.576689356912938*^9, 3.576689357014991*^9}, {3.576689526714899*^9, 
+  3.576689526788611*^9}, {3.576689667301786*^9, 3.576689687914208*^9}, {
+  3.576689864079411*^9, 3.5766898643105373`*^9}, {3.576690461504776*^9, 
+  3.576690463639516*^9}, {3.576691451699329*^9, 3.576691452987609*^9}, {
+  3.576691606144413*^9, 3.576691646686016*^9}}],
+
+Cell[BoxData["\<\" ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ss  ss  ss  ss  ,,  ,,  ,, \
+ ,,  ,,  ,,  ,,  ,, \\n ,,  ,,  ,,  ,,  ,,  ,,  ,,  ss  ||  ||  ||  ||  ss  \
+,,  ,,  ,,  ,,  ,,  ,,  ,, \\n ,,  ,,  ,,  ,,  ,,  ,,  ,,  ss  ||  ..  ..  || \
+ ss  ,,  ,,  ,,  ,,  ,,  ,,  ,, \\n ,,  ,,  ,,  ,,  ,,  ,,  ,,  ss  ||  ..  \
+..  ||  ss  ,,  ,,  ,,  ,,  ,,  ,,  ,, \\n ,,  ,,  ,,  ,,  ,,  ,,  ,,  ss  || \
+ ..  ..  ||  ss  ,,  ,,  ,,  ,,  ,,  ,,  ,, \\n ,,  ,,  ss  ss  ss  ss  ,,  \
+ss  ||  ..  ..  ||  ss  ,,  ,,  ,,  ,,  ,,  ,,  ,, \\n ,,  ss  ||  ||  ||  || \
+ ss  ss  ||  ||  ||  ||  ss  ,,  ,,  ,,  ,,  ,,  ,,  ,, \\n ,,  ss  ||  ..  \
+..  ||  ss  ,,  ss  ss  ss  ss  ss  ss  ,,  ,,  ,,  ,,  ,,  ,, \\n ,,  ss  || \
+ ..  ..  ||  ss  ss  ||  ||  ||  ||  ||  ||  ss  ,,  ,,  ,,  ,,  ,, \\n ,,  \
+ss  ||  ..  ..  ||  ss  ss  ||  ..  ..  ..  ..  ||  ss  ,,  ,,  ,,  ,,  ,, \
+\\n ,,  ss  ||  ||  ||  ||  ss  ss  ||  ..  ..  ..  ..  ||  ss  ,,  ,,  ,,  \
+,,  ,, \\n ,,  ,,  ss  ss  ss  ss  ,,  ss  ||  ..  ..  ..  ..  ||  ss  ,,  ,, \
+ ,,  ,,  ,, \\n ,,  ,,  ,,  ,,  ,,  ,,  ,,  ss  ||  ..  ..  ..  ..  ||  ss  \
+,,  ,,  ,,  ,,  ,, \\n ,,  ,,  ,,  ,,  ,,  ,,  ,,  ss  ||  ..  ..  ..  ..  || \
+ ss  ,,  ,,  ,,  ,,  ,, \\n ,,  ,,  ,,  ,,  ,,  ,,  ,,  ss  ||  ||  ||  ||  \
+||  ||  ss  ,,  ,,  ,,  ,,  ,, \\n ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ss  ss  ss \
+ ss  ss  ss  ,,  ,,  ,,  ,,  ,,  ,, \\n ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  \
+,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,, \\n ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,, \
+ ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,, \\n ,,  ,,  ,,  ,,  ,,  ,,  \
+,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,, \\n ,,  ,,  ,,  ,,  ,, \
+ ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,,  ,, \\n\"\>"], \
+"Output",
+ CellChangeTimes->{
+  3.5766893163826523`*^9, {3.576689357634528*^9, 3.576689379094227*^9}, {
+   3.576689459386631*^9, 3.5766894845802593`*^9}, 3.576689528441869*^9, {
+   3.57668963204277*^9, 3.576689706616181*^9}, {3.576689796493197*^9, 
+   3.576689864553451*^9}, 3.57669024894083*^9, {3.576690316750668*^9, 
+   3.576690323067801*^9}, {3.576690453719646*^9, 3.5766904691054077`*^9}, {
+   3.5766914533633347`*^9, 3.576691464048369*^9}, {3.576691606735341*^9, 
+   3.576691712734178*^9}}]
+}, Open  ]]
+},
+WindowSize->{560, 960},
+WindowMargins->{{4, Automatic}, {35, Automatic}},
+FrontEndVersion->"9.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (November 20, \
+2012)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[557, 20, 701, 15, 114, "Input"],
+Cell[1261, 37, 890, 25, 97, "Input"],
+Cell[2154, 64, 3573, 82, 420, "Input"],
+Cell[5730, 148, 11309, 250, 1270, "Input"],
+Cell[CellGroupData[{
+Cell[17064, 402, 552, 10, 28, "Input"],
+Cell[17619, 414, 2226, 30, 709, "Output"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)

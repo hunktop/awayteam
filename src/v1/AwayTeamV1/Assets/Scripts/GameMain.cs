@@ -50,6 +50,8 @@ public class GameMain : MonoBehaviour
         Futile.atlasManager.LoadImage("move");
         Futile.atlasManager.LoadImage("useitem");
         Futile.atlasManager.LoadImage("crosshair");
+        Futile.atlasManager.LoadImage("walltile");
+        Futile.atlasManager.LoadImage("floortile");
 
         GoToScene(GameSceneType.MissionScene);
     }

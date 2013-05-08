@@ -29,6 +29,8 @@ public class MissionScene : GameScene, FSingleTouchableInterface
 
     #region Private Fields
 
+    private MapGenerator mapGenerator;
+
     // Some book-keeping lists/sets
     private HashSet<Vector2i> localAttackablePoints;
     private HashSet<Vector2i> highlightedIndicies;
@@ -72,18 +74,22 @@ public class MissionScene : GameScene, FSingleTouchableInterface
     {
         var width = 50;
         var height = 35;
+		var mapSeed = "blah blah";
+		
         var tiles = new TileProperties[width, height];
         this.localAttackablePoints = new HashSet<Vector2i>();
 
-        // Generate a very simple random map with two different kinds of tiles
-        var rand = new System.Random();
+        // Generate a very simple random map tiles
+		this.mapGenerator = new MapGenerator();
+		tiles = mapGenerator.GenerateMap(width, height);
+        /*var rand = new System.Random();
         for (int ii = 0; ii < width; ii++)
         {
             for (int jj = 0; jj < height; jj++)
             {
                 tiles[ii, jj] = (rand.NextDouble() < 0.7) ? StaticTiles.GrassTile : StaticTiles.ForestTiles;
             }
-        }
+        }*/
         this.Map = new Map(tiles);
 
         // Add a few actors to the map
