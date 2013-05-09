@@ -32,6 +32,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
     private FButton useItemButton;
     private ButtonStrip buttonStrip;
     private PhaserShotAnimation phaserShot;
+	private ScriptableObject interfaceManager;
    
     #endregion
 
@@ -50,7 +51,11 @@ public class MissionScene : GameScene, FSingleTouchableInterface
 		
         var tiles = new TileProperties[width, height];
         this.localAttackablePoints = new HashSet<Vector2i>();
-
+		
+		// This handles GUI and stuff
+		//this.interfaceManager = new InterfaceManager();
+		//this.interfaceManager = ScriptableObject.CreateInstance("InterfaceManager");;
+		
         // Generate a very simple random map tiles
 		this.mapGenerator = new MapGenerator();
 		tiles = mapGenerator.GenerateMap(width, height);
