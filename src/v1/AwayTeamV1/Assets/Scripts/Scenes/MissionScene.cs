@@ -39,16 +39,14 @@ public class MissionScene : GameScene, FSingleTouchableInterface
     private FSprite[,] overlay;
     private ButtonStrip buttonStrip;
     private PhaserShotAnimation phaserShot;
+
+    private BasicMoveController moveController;
+    private WaitController waitController;
+    private Dictionary<uint, AbilityController> abilityToController;
    
     #endregion
 
     #region Public Properties
-
-    public PathfindResult Pathfinding
-    {
-        get;
-        private set;
-    }
 
     public Actor SelectedActor
     {
@@ -66,7 +64,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
 
     #region Start
 
-    /// <summary>
+   /// <summary>
     /// Initialize resources.  Right now, for testing purposes, a simple random map is 
     /// generated here with a few actors in it.
     /// </summary>
@@ -80,44 +78,44 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         this.localAttackablePoints = new HashSet<Vector2i>();
 
         // Generate a very simple random map tiles
-		this.mapGenerator = new MapGenerator();
-		tiles = mapGenerator.GenerateMap(width, height);
-        /*var rand = new System.Random();
+		//this.mapGenerator = new MapGenerator();
+		//tiles = mapGenerator.GenerateMap(width, height);
+        var rand = new System.Random();
         for (int ii = 0; ii < width; ii++)
         {
             for (int jj = 0; jj < height; jj++)
             {
-                tiles[ii, jj] = (rand.NextDouble() < 0.7) ? StaticTiles.GrassTile : StaticTiles.ForestTiles;
+                tiles[ii, jj] = (rand.NextDouble() < 0.7) ? StaticTiles.GrassTile : StaticTiles.ForestTile;
             }
-        }*/
+        }
         this.Map = new Map(tiles);
 
         // Add a few actors to the map
         var actor1 = new Actor("goodsoldier");
         actor1.MovementPoints = 6;
-        actor1.Name = "Hunkenheim";
+        actor1.Name = "Hunkenheim1";
         actor1.IsComputer = false;
         actor1.TurnState = ActorState.TurnStart;
-        actor1.Abilities.Add(new Move());
-        actor1.Abilities.Add(new Wait());
+        actor1.Abilities.Add(new BasicMoveAbility());
+        actor1.Abilities.Add(new WaitAbility());
         this.Map.AddActor(actor1, new Vector2i(5, 5));
 
         var actor2 = new Actor("goodsoldier");
         actor2.MovementPoints = 6;
-        actor2.Name = "Hunkenheim";
+        actor2.Name = "Hunkenheim2";
         actor2.IsComputer = false;
         actor2.TurnState = ActorState.TurnStart;
-        actor2.Abilities.Add(new Move());
-        actor2.Abilities.Add(new Wait());
+        actor2.Abilities.Add(new BasicMoveAbility());
+        actor2.Abilities.Add(new WaitAbility());
         this.Map.AddActor(actor2, new Vector2i(5, 6));
 
         var actor3 = new Actor("goodsoldier");
         actor3.MovementPoints = 6;
-        actor3.Name = "Hunkenheim";
+        actor3.Name = "Hunkenheim3";
         actor3.IsComputer = false;
         actor3.TurnState = ActorState.TurnStart;
-        actor3.Abilities.Add(new Move());
-        actor3.Abilities.Add(new Wait());
+        actor3.Abilities.Add(new BasicMoveAbility());
+        actor3.Abilities.Add(new WaitAbility());
         this.Map.AddActor(actor3, new Vector2i(5, 7));
         
         this.Map.Start();
@@ -126,7 +124,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         this.crosshair = new FSprite("crosshair");
         this.crosshair.width = this.crosshair.height = GameConstants.TileSize;
 
-        // Initialize highlights
+        // Initialize overlay
         this.highlightedIndicies = new HashSet<Vector2i>();
         this.overlay = new FSprite[Map.Columns, Map.Rows];
         for (int ii = 0; ii < Map.Columns; ii++)
@@ -142,6 +140,10 @@ public class MissionScene : GameScene, FSingleTouchableInterface
                 this.AddChild(overlaySprite);
             }
         }
+
+        this.abilityToController = new Dictionary<uint, AbilityController>();
+        this.abilityToController.Add(AbilityId.BasicMove, BasicMoveController.Instance);
+        this.abilityToController.Add(AbilityId.Wait, WaitController.Instance);
     }
 
     #endregion
@@ -259,30 +261,19 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         var gridVector = this.Map.GlobalToGrid(touch.position);
         Actor tempActor;
         Debug.Log("Touch at: " + touch.position + ", map grid: " + gridVector);
-          
-        if (this.SelectedActor != null)
+        if (this.SelectedActor == null)
         {
-            var actorState = this.SelectedActor.TurnState;
-            //if(actorState == ActorState.SelectingEnemy)
-            //{
-            //    if (this.localAttackablePoints.Contains(gridVector))
-            //    {
-            //        Debug.Log("Attacking point: " + gridVector);
-            //        Vector2 source = new Vector2(this.SelectedActor.x, this.SelectedActor.y);
-            //        Vector2 dest = this.Map.GridToGlobal(gridVector);
-            //        this.shootLaser(source, dest);
-            //    }
-            //}
-        }
-        else if(this.Map.TryGetActor(gridVector, out tempActor) && !tempActor.IsComputer)
-        {
-            this.SelectedActor = tempActor;
-            var actorState = this.SelectedActor.TurnState;
-            if (actorState == ActorState.TurnStart)
+            if (this.Map.TryGetActor(gridVector, out tempActor) && !tempActor.IsComputer)
             {
-                this.SelectedActor.TurnState = ActorState.AwaitingCommand;
-                this.Pathfinding = MoveAndAttackHelper.Pathfind(this.Map, this.SelectedActor);
-                this.showButtonStrip(this.SelectedActor);
+                this.SelectedActor = tempActor;
+                var actorState = this.SelectedActor.TurnState;
+                Debug.Log("[[Turn Start]]: Actor " + this.SelectedActor);
+                if (actorState == ActorState.TurnStart)
+                {
+                    this.SelectedActor.TurnState = ActorState.AwaitingCommand;
+
+                    this.showButtonStrip(this.SelectedActor);
+                }
             }
         }
     }
@@ -297,17 +288,20 @@ public class MissionScene : GameScene, FSingleTouchableInterface
 
     private void abilityButtonPressed(FButton b)
     {
+        Debug.Log("[[Ability Button Pressed]]: Actor " + this.SelectedActor + ", Button " + b);
         var ability = b.data as Ability;
-        ability.AbilityComplete += new EventHandler<AbilityCompleteEventArgs>(abilityComplete);
+        var controller = this.abilityToController[ability.ID];
+        controller.ActionComplete += actionComplete;
         this.RemoveChild(this.buttonStrip);
         this.buttonStrip = null;
-        ability.Activate(this);
+        controller.Activate(this, ability);
     }
 
-    private void abilityComplete(object sender, AbilityCompleteEventArgs args)
+    private void actionComplete(object sender, ActionCompleteEventArgs args)
     {
         if (args.TurnOver)
         {
+            Debug.Log("[[Turn Over]]: Actor " + this.SelectedActor);
             this.SelectedActor.TurnState = ActorState.TurnOver;
             this.SelectedActor = null;
             this.ClearOverlay();
@@ -317,17 +311,9 @@ public class MissionScene : GameScene, FSingleTouchableInterface
             this.SelectedActor.TurnState = ActorState.AwaitingCommand;
             this.showButtonStrip(this.SelectedActor);
         }
-    }
 
-    private void attackButton_SignalRelease(FButton b)
-    {
-        Debug.Log("Attack button clicked.");
-        if (this.SelectedActor != null)
-        {
-            this.highlightLocalAttackable();
-            this.SelectedActor.TurnState = ActorState.SelectingEnemy;
-            this.RemoveChild(this.buttonStrip);
-        }
+        var controller = sender as AbilityController;
+        controller.ActionComplete -= actionComplete;
     }
 
     #endregion
@@ -353,20 +339,6 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         }
     }
 
-    private void clearCrossHair()
-    {
-        if (this._childNodes.Contains(this.crosshair))
-        {
-            this.RemoveChild(this.crosshair);
-        }
-    }
-
-    private void clearSelection()
-    {
-        this.ClearOverlay();
-        this.SelectedActor = null;
-    }
-
     private void showButtonStrip(Actor actor)
     {
         this.buttonStrip = new ButtonStrip();
@@ -389,35 +361,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         this.buttonStrip.y = actor.y - actor.height;
         this.AddChild(this.buttonStrip);
     }
-
-    /// <summary>
-    /// Draw a crosshair at the given position in the grid.
-    /// </summary>
-    /// <param name="dest"></param>
-    private void drawCrossHair(Vector2i dest)
-    {
-        this.crosshair.x = dest.X * GameConstants.TileSize + GameConstants.TileSize / 2;
-        this.crosshair.y = dest.Y * GameConstants.TileSize + GameConstants.TileSize / 2;
-
-        if (!this._childNodes.Contains(this.crosshair))
-        {
-            this.AddChild(this.crosshair);
-        }
-    }
-
-    private void highlightLocalAttackable()
-    {
-        /*
-        this.clearHighlights();
-        foreach (var item in this.localAttackablePoints)
-        {
-            this.overlay[item.X, item.Y].SetElementByName("redhighlight");
-            this.overlay[item.X, item.Y].isVisible = true;
-            this.highlightedIndicies.Add(item);
-        }
-         * */
-    }
-
+        
     private void scrollMap(Vector2 mousePosition)
     {
         var mX = mousePosition.x;
