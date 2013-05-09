@@ -34,6 +34,13 @@ public class GameMain : MonoBehaviour
 
         // Clearly game assets must be put into an atlas as some point, 
         // but for testing purposes I just load each image I need.
+		/*Futile.atlasManager.LoadFont("Franchise","FranchiseFont"+
+		Futile.resourceSuffix+".png", "Atlases/FranchiseFont"+Futile.resourceSuffix);*/
+		//Futile.atlasManager.LoadFont("Arial","arial","arial");
+		//Futile.atlasManager.LoadFont("Arial", "arial"+Futile.resourceSuffix+".png", "arial"+Futile.resourceSuffix);
+		//Futile.atlasManager.LoadFont("arial", "arial", "Atlases/arial");
+		// how do you add fonnnttttssss?????????!!!!!
+		
         Futile.atlasManager.LoadImage("grasstile");
         Futile.atlasManager.LoadImage("foresttile");
         Futile.atlasManager.LoadImage("evilsoldier");
