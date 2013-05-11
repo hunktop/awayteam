@@ -139,6 +139,7 @@ public class AnimationCanvas : FContainer
 
     public override void HandleAddedToStage()
     {
+        this.Start();
         Futile.instance.SignalUpdate += Update;
         Futile.screen.SignalResize += Resize;
         base.HandleAddedToStage();

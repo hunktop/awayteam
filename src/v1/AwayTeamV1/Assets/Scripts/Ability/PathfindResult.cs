@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 public class PathfindResult
@@ -44,4 +43,3 @@ public class PathfindResult
         this.Previous = new Dictionary<Vector2i, Vector2i>();
     }
 }
-

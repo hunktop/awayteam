@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 #region Event Args
@@ -12,17 +11,6 @@ public class TouchEventArgs : EventArgs
         get;
         set;
     }
-}
-
-#endregion
-
-#region Turn State
-
-public enum TurnState
-{
-    TurnBegin,
-    TurnMiddle,
-    TurnEnd
 }
 
 #endregion
@@ -44,27 +32,23 @@ public class MissionScene : GameScene, FSingleTouchableInterface
     private MapGenerator mapGenerator;
 
     // Some book-keeping lists/sets
-    private HashSet<Vector2i> visibleOverlayIndices;
+    private HashSet<Vector2i> localAttackablePoints;
+    private HashSet<Vector2i> highlightedIndicies;
 
+    private FSprite crosshair;
     private FSprite[,] overlay;
     private ButtonStrip buttonStrip;
+    private PhaserShotAnimation phaserShot;
 	private ScriptableObject interfaceManager;
-    private TurnState turnState;
-    private bool started;
 
-    private MoveController moveController;
+    private BasicMoveController moveController;
     private WaitController waitController;
     private Dictionary<uint, AbilityController> abilityToController;
-
-    private List<Team> teams = new List<Team>();
-    private int teamIndex;
-    private int actorsProcessedThisTurn;
-    private int teamActorCount;
-    
+   
     #endregion
 
     #region Public Properties
-    
+
     public Actor SelectedActor
     {
         get;
@@ -90,17 +74,17 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         var width = 50;
         var height = 35;
 		var mapSeed = "blah blah";
+		
         var tiles = new TileProperties[width, height];
+        this.localAttackablePoints = new HashSet<Vector2i>();
 		
 		// This handles GUI and stuff
 		//this.interfaceManager = new InterfaceManager();
 		//this.interfaceManager = ScriptableObject.CreateInstance("InterfaceManager");;
 		
         // Generate a very simple random map tiles
-		this.mapGenerator = new MapGenerator();
-		tiles = mapGenerator.GenerateMap(width, height, 10);
-        
-        /*
+		//this.mapGenerator = new MapGenerator();
+		//tiles = mapGenerator.GenerateMap(width, height);
         var rand = new System.Random();
         for (int ii = 0; ii < width; ii++)
         {
@@ -109,49 +93,62 @@ public class MissionScene : GameScene, FSingleTouchableInterface
                 tiles[ii, jj] = (rand.NextDouble() < 0.7) ? StaticTiles.GrassTile : StaticTiles.ForestTile;
             }
         }
-        */
         this.Map = new Map(tiles);
-        int i = 5;
-        int j = 5;
-        foreach (var team in this.teams)
-        {
-            var actorList = new List<Actor>();
-            foreach (var member in team.Members)
-            {
-                var actor = new Actor(member, team);
-                actorList.Add(actor);
-                this.Map.AddActor(actor, new Vector2i(i++, j++));
-            }
-        }
 
+        // Add a few actors to the map
+        var actor1 = new Actor("goodsoldier");
+        actor1.MovementPoints = 6;
+        actor1.Name = "Hunkenheim1";
+        actor1.IsComputer = false;
+        actor1.TurnState = ActorState.TurnStart;
+        actor1.Abilities.Add(new BasicMoveAbility());
+        actor1.Abilities.Add(new WaitAbility());
+        this.Map.AddActor(actor1, new Vector2i(5, 5));
+
+        var actor2 = new Actor("goodsoldier");
+        actor2.MovementPoints = 6;
+        actor2.Name = "Hunkenheim2";
+        actor2.IsComputer = false;
+        actor2.TurnState = ActorState.TurnStart;
+        actor2.Abilities.Add(new BasicMoveAbility());
+        actor2.Abilities.Add(new WaitAbility());
+        this.Map.AddActor(actor2, new Vector2i(5, 6));
+
+        var actor3 = new Actor("goodsoldier");
+        actor3.MovementPoints = 6;
+        actor3.Name = "Hunkenheim3";
+        actor3.IsComputer = false;
+        actor3.TurnState = ActorState.TurnStart;
+        actor3.Abilities.Add(new BasicMoveAbility());
+        actor3.Abilities.Add(new WaitAbility());
+        this.Map.AddActor(actor3, new Vector2i(5, 7));
         
         this.Map.Start();
         this.AddChild(this.Map);
 
+        this.crosshair = new FSprite("crosshair");
+        this.crosshair.width = this.crosshair.height = GameConstants.TileSize;
+
         // Initialize overlay
-        this.visibleOverlayIndices = new HashSet<Vector2i>();
+        this.highlightedIndicies = new HashSet<Vector2i>();
         this.overlay = new FSprite[Map.Columns, Map.Rows];
         for (int ii = 0; ii < Map.Columns; ii++)
         {
             for (int jj = 0; jj < Map.Rows; jj++)
             {
                 var overlaySprite = new FSprite("bluehighlight");
-                overlaySprite.x = ii * AwayTeam.TileSize + AwayTeam.TileSize / 2;
-                overlaySprite.y = jj * AwayTeam.TileSize + AwayTeam.TileSize / 2;
+                overlaySprite.x = ii * GameConstants.TileSize + GameConstants.TileSize / 2;
+                overlaySprite.y = jj * GameConstants.TileSize + GameConstants.TileSize / 2;
                 overlaySprite.isVisible = false;
-                overlaySprite.width = overlaySprite.height = AwayTeam.TileSize;
+                overlaySprite.width = overlaySprite.height = GameConstants.TileSize;
                 this.overlay[ii, jj] = overlaySprite;
                 this.AddChild(overlaySprite);
             }
         }
 
         this.abilityToController = new Dictionary<uint, AbilityController>();
-        this.abilityToController.Add(AbilityId.BasicMove, MoveController.Instance);
+        this.abilityToController.Add(AbilityId.BasicMove, BasicMoveController.Instance);
         this.abilityToController.Add(AbilityId.Wait, WaitController.Instance);
-
-        this.teamIndex = 0;
-        this.turnState = TurnState.TurnBegin;
-        this.started = true;
     }
 
     #endregion
@@ -159,46 +156,12 @@ public class MissionScene : GameScene, FSingleTouchableInterface
     #region Update
 
     /// <summary>
-    /// Figure out which part of the turn we're in and act accordinly.
+    /// Update does a few things at the moment:
+    /// - Handles mouse-over events (look at the position of the mouse and figure out if 
+    ///   we have to change the display in some way).
+    /// - Handles key presses
     /// </summary>
     public override void  Update()
-    {
-        switch (this.turnState)
-        {
-            case TurnState.TurnBegin:
-                this.TurnBegin();
-                break;
-            case TurnState.TurnMiddle:
-                this.TurnMiddle();
-                break;
-            case TurnState.TurnEnd:
-                this.TurnEnd();
-                break;
-        }
-
-        base.Update();
-    }
-
-    
-    private void TurnBegin()
-    {
-        var curTeam = this.teams[this.teamIndex];
-        Debug.Log("[[Team Turn Begin]] Team: " + curTeam.Name);
-        this.teamActorCount = this.teams[this.teamIndex].Members.Count;
-        this.actorsProcessedThisTurn = 0;
-        foreach (var actor in this.Map.Actors.Where(a => a.Team == curTeam))
-        {
-            actor.TurnState = ActorState.CommandsAvailable;
-            foreach (var ability in actor.Properties.Abilities)
-            {
-                ability.DecrementCooldown();
-            }
-        }
-
-        this.turnState = TurnState.TurnMiddle;
-    }
-
-    private void TurnMiddle()
     {
         var mousePosition2d = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
         var globalCoords = MouseManager.ScreenToGlobal(mousePosition2d);
@@ -213,29 +176,13 @@ public class MissionScene : GameScene, FSingleTouchableInterface
             {
                 if (actorState == ActorState.AwaitingCommand)
                 {
-                    this.SelectedActor.TurnState = ActorState.CommandsAvailable;
-                    this.clearSelection();
                 }
             }
         }
 
-        if (this.TurnOver())
-        {
-            this.turnState = TurnState.TurnEnd;
-        }
+        base.Update();
     }
 
-    private void TurnEnd()
-    {
-        Debug.Log("[[Team Turn End]] Team: " +  this.teams[this.teamIndex].Name);
-        this.teamIndex = (this.teamIndex + 1) % this.teams.Count;
-        this.turnState = TurnState.TurnBegin;
-    }
-
-    private bool TurnOver()
-    {
-        return this.actorsProcessedThisTurn >= this.teamActorCount;
-    }
     #endregion 
 
     #region Overrides
@@ -256,12 +203,6 @@ public class MissionScene : GameScene, FSingleTouchableInterface
 
     #region Public Methods
 
-    public void AddTeam(Team team)
-    {
-        // TODO Do something if the map is alreadt running, probably throw exception
-        this.teams.Add(team);
-    }
-
     public void SetOverlay(int x, int y, string sprite)
     {
         this.overlay[x, y].SetElementByName(sprite);
@@ -274,24 +215,24 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         var vector = new Vector2i(x,y);
         if (visible)
         {
-            this.visibleOverlayIndices.Add(vector);
+            this.highlightedIndicies.Add(vector);
         }
         else
         {
-            if (this.visibleOverlayIndices.Contains(vector))
+            if (this.highlightedIndicies.Contains(vector))
             {
-                this.visibleOverlayIndices.Remove(vector);
+                this.highlightedIndicies.Remove(vector);
             }
         }
     }
 
     public void ClearOverlay()
     {
-        foreach (var index in this.visibleOverlayIndices)
+        foreach (var index in this.highlightedIndicies)
         {
             this.overlay[index.X, index.Y].isVisible = false;
         }
-        this.visibleOverlayIndices.Clear();
+        this.highlightedIndicies.Clear();
     }
 
     #endregion
@@ -323,19 +264,19 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         }
 
         var gridVector = this.Map.GlobalToGrid(touch.position);
-        var curTeam = this.teams[this.teamIndex];
         Actor tempActor;
-
-        Debug.Log("[[Touch Detected]]: World Coordinates: " + touch.position + ", Map Coordinates: " + gridVector);
+        Debug.Log("Touch at: " + touch.position + ", map grid: " + gridVector);
         if (this.SelectedActor == null)
         {
-            if (this.Map.TryGetActor(gridVector, out tempActor))
+            if (this.Map.TryGetActor(gridVector, out tempActor) && !tempActor.IsComputer)
             {
-                if (tempActor.Team == curTeam && tempActor.TurnState == ActorState.CommandsAvailable)
+                this.SelectedActor = tempActor;
+                var actorState = this.SelectedActor.TurnState;
+                Debug.Log("[[Turn Start]]: Actor " + this.SelectedActor);
+                if (actorState == ActorState.TurnStart)
                 {
-                    this.SelectedActor = tempActor;
                     this.SelectedActor.TurnState = ActorState.AwaitingCommand;
-                    Debug.Log("[[Actor Turn Start]]: Actor " + this.SelectedActor); 
+
                     this.showButtonStrip(this.SelectedActor);
                 }
             }
@@ -352,24 +293,23 @@ public class MissionScene : GameScene, FSingleTouchableInterface
 
     private void abilityButtonPressed(FButton b)
     {
-        Debug.Log("[[Ability Button Pressed]]: Actor " + this.SelectedActor + ", Ability " + b.data);
+        Debug.Log("[[Ability Button Pressed]]: Actor " + this.SelectedActor + ", Button " + b);
         var ability = b.data as Ability;
         var controller = this.abilityToController[ability.ID];
         controller.ActionComplete += actionComplete;
         this.RemoveChild(this.buttonStrip);
         this.buttonStrip = null;
-        this.SelectedActor.TurnState = ActorState.ExecutingCommand;
-        controller.Activate(ability);
+        controller.Activate(this, ability);
     }
 
     private void actionComplete(object sender, ActionCompleteEventArgs args)
     {
         if (args.TurnOver)
         {
-            Debug.Log("[[Actor Turn Over]]: Actor " + this.SelectedActor);
+            Debug.Log("[[Turn Over]]: Actor " + this.SelectedActor);
             this.SelectedActor.TurnState = ActorState.TurnOver;
-            this.clearSelection();
-            this.actorsProcessedThisTurn++;
+            this.SelectedActor = null;
+            this.ClearOverlay();
         }
         else
         {
@@ -381,19 +321,28 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         controller.ActionComplete -= actionComplete;
     }
 
-    private void clearSelection()
-    {
-        this.ClearOverlay();
-        this.SelectedActor = null;
-        if (this.buttonStrip != null && this._childNodes.Contains(this.buttonStrip))
-        {
-            this.RemoveChild(this.buttonStrip);
-        }
-    }
-
     #endregion
 
     #region Private Methods
+
+    private void shootLaser(Vector2 start, Vector2 end)
+    {
+        var phaserShot = new PhaserShotAnimation(start, end);
+        phaserShot.Start();
+        phaserShot.Delay = 10;
+        phaserShot.AnimationStopped += new EventHandler<AnimationEventArgs>(this.phaserShot_AnimationStopped);
+        this.AddChild(phaserShot);
+        phaserShot.Play();
+    }
+
+    private void phaserShot_AnimationStopped(object sender, AnimationEventArgs args)
+    {
+        if (args.StoppedReason == StoppedReason.Complete)
+        {
+            Debug.Log("Removing phaser " + sender);
+            this.RemoveChild(sender as FNode);
+        }
+    }
 
     private void showButtonStrip(Actor actor)
     {
@@ -403,7 +352,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
 
         if (actor != null && actor.TurnState == ActorState.AwaitingCommand)
         {
-            foreach (var ability in actor.Properties.AvailableAbilities)
+            foreach (var ability in actor.AvailableAbilities)
             {
                 var button = new FButton(ability.IconName);
                 button.sprite.width = button.sprite.height = 32;
@@ -422,13 +371,13 @@ public class MissionScene : GameScene, FSingleTouchableInterface
     {
         var mX = mousePosition.x;
         var mY = mousePosition.y;
-        var margin = AwayTeam.MapScrollMargin;
+        var margin = GameConstants.MapScrollMargin;
 
         if ((mX >= 0 && mX < margin) || Input.GetKey(KeyCode.A))
         {
             if (this.x < 0)
             {
-                this.x += AwayTeam.MapScrollSpeed;
+                this.x += GameConstants.MapScrollSpeed;
             }
         }
 
@@ -436,7 +385,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         {
             if (Math.Abs(this.x) + Futile.screen.width < this.Map.Width)
             {
-                this.x -= AwayTeam.MapScrollSpeed;
+                this.x -= GameConstants.MapScrollSpeed;
             }
         }
 
@@ -444,7 +393,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         {
             if (this.y < 0)
             {
-                this.y += AwayTeam.MapScrollSpeed;
+                this.y += GameConstants.MapScrollSpeed;
             }
         }
 
@@ -452,7 +401,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         {
             if (Math.Abs(this.y) + Futile.screen.height < this.Map.Height)
             {
-                this.y -= AwayTeam.MapScrollSpeed;
+                this.y -= GameConstants.MapScrollSpeed;
             }
         }
     }

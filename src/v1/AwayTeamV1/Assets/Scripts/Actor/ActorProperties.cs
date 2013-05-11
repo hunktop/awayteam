@@ -1,8 +1,17 @@
-/// <summary>
-/// Temporary class for storing actor metadata.
-/// </summary>
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
 public class ActorProperties
 {
+    #region Private Fields
+
+    private HashSet<Ability> allAbilities = new HashSet<Ability>();
+
+    #endregion
+
+    #region Attributes
+
     public string Name
     {
         get;
@@ -21,5 +30,32 @@ public class ActorProperties
         set;
     }
 
+    public HashSet<Ability> Abilities
+    {
+        get
+        {
+            return this.allAbilities;
+        }
+    }
 
+    #endregion
+
+    #region Turn State
+
+    public IEnumerable<Ability> AvailableAbilities
+    {
+        get
+        {
+            return this.allAbilities.Where(a => a.Available);
+        }
+    }
+
+    #endregion
+
+    public override string ToString()
+    {
+        return this.Name;
+    }
 }
+
+

@@ -34,7 +34,6 @@ class LineOfSight
                 err -= dy;
                 x0 += sx;
             }
-            List<int> l; 
 
             if (e2 < dx)
             {

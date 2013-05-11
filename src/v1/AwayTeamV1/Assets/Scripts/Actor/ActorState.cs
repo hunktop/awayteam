@@ -1,8 +1,7 @@
 ﻿public enum ActorState
 {
-    TurnStart,
+    CommandsAvailable,
     AwaitingCommand,
-    SelectingDestination,
-    SelectingEnemy,
+    ExecutingCommand,
     TurnOver
 }

@@ -40,7 +40,9 @@ public class GameMain : MonoBehaviour
 		//Futile.atlasManager.LoadFont("Arial", "arial"+Futile.resourceSuffix+".png", "arial"+Futile.resourceSuffix);
 		//Futile.atlasManager.LoadFont("arial", "arial", "Atlases/arial");
 		// how do you add fonnnttttssss?????????!!!!!
-		
+
+        //Futile.atlasManager.LoadImage("arial");
+        //Futile.atlasManager.LoadFont("arial", "arial", "arialfnt");
         Futile.atlasManager.LoadImage("grasstile");
         Futile.atlasManager.LoadImage("foresttile");
         Futile.atlasManager.LoadImage("evilsoldier");
@@ -74,7 +76,39 @@ public class GameMain : MonoBehaviour
         switch (sceneType)
         {
             case GameSceneType.MissionScene:
-                sceneToCreate = new MissionScene();
+                var missionScene = new MissionScene();
+
+                Team team1 = new Team("Rumbleshank");
+                team1.AIControlled = false;
+                var actor1 = new ActorProperties();
+                actor1.SpriteName = "goodsoldier";
+                actor1.MovementPoints = 6;
+                actor1.Name = "Hunkenheim1";
+                actor1.Abilities.Add(new BasicMoveAbility());
+                actor1.Abilities.Add(new WaitAbility());
+                team1.Members.Add(actor1);
+                var actor2 = new ActorProperties();
+                actor2.SpriteName = "goodsoldier";
+                actor2.MovementPoints = 6;
+                actor2.Name = "Hunkenheim2";
+                actor2.Abilities.Add(new BasicMoveAbility());
+                actor2.Abilities.Add(new WaitAbility());
+                team1.Members.Add(actor2);
+                missionScene.AddTeam(team1);
+
+                Team team2 = new Team("Brown Eggz");
+                team2.AIControlled = true;
+                var actor3 = new ActorProperties();
+                actor3.SpriteName = "evilsoldier";
+                actor3.MovementPoints = 6;
+                actor3.Name = "Scrambled Eggs";
+                actor3.Abilities.Add(new BasicMoveAbility());
+                actor3.Abilities.Add(new WaitAbility());
+                team2.Members.Add(actor3);
+                missionScene.AddTeam(team2);
+
+                sceneToCreate = missionScene;
+                AwayTeam.MissionController = missionScene;
                 break;
             default:
                 break;

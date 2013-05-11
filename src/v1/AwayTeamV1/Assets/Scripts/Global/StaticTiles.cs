@@ -1,4 +1,5 @@
-﻿public class StaticTiles
+﻿using System;
+public class StaticTiles
 {
     public static TileProperties GrassTile = new TileProperties()
     {
@@ -15,7 +16,7 @@
 	public static TileProperties WallTile = new TileProperties()
 	{
 		SpriteName = "walltile",
-		MovementPenalty = 10000000 // how do we handle infinity?
+		MovementPenalty = Int32.MaxValue // how do we handle infinity?
 	};
 	
 	public static TileProperties FloorTile = new TileProperties()
