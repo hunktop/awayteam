@@ -14,8 +14,10 @@ public class BasicRangedAttackAbility : AttackAbility
     {
     }
 
-    public override IEnumerable<Vector2i> GetAttackableLocations(Map map, Actor actor)
-    {
+    public override IEnumerable<Vector2i> GetAttackableLocations(Map map, Actor actor, RangedWeapon )
+	{
+		float x = 1.5;
+		
         throw new NotImplementedException();
     }
 

@@ -45,6 +45,12 @@ public class Actor : FSprite
             this.y = value.Y * AwayTeam.TileSize + AwayTeam.TileSize / 2;
         }
     }
+	
+	public WeaponProperties Weapon
+	{
+		get;
+		set;
+	}
 
     #endregion
 

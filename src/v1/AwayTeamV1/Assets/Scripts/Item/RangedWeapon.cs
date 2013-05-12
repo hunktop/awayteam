@@ -3,19 +3,29 @@
     public int MinRange
     {
         get;
-        private set;
+        set;
     }
 
     public int MaxRange
     {
         get;
-        private set;
+        set;
     }
+	
+	public int Damage 
+	{
+		get;
+		set;
+	}
+	
+	public float CritChance
+	{
+		get;
+		set;
+	}
 
-    public RangedWeapon(int minRange, int maxRange)
+    public RangedWeapon()
     {
-        this.MinRange = minRange;
-        this.MinRange = maxRange;
     }
 }
 
