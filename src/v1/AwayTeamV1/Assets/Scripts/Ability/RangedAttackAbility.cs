@@ -15,7 +15,7 @@ public class RangedAttackAbility : AttackAbility
     {
     }
 
-    public override IEnumerable<Vector2i> GetAttackableLocations(Map map, Actor actor, RangedWeapon weapon)
+    public override IEnumerable<Vector2i> GetAttackableLocations(Map map, Actor actor, WeaponProperties weapon)
     {
         return AttackHelper.GetTargetablePoints(map, actor, weapon.MinRange, weapon.MaxRange, true, false);
     }

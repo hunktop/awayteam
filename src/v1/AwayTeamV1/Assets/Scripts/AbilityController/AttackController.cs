@@ -51,7 +51,7 @@ public class AttackController : AbilityController
             throw new ArgumentException("Ability " + ability + " is not implemented by this controller.");
         }
 
-        var weapon = this.SelectedActor.EquippedItem as RangedWeapon;
+        var weapon = this.SelectedActor.EquippedItem as WeaponProperties;
         this.attackableLocations = 
             this.AttackAbility.GetAttackableLocations(this.Map, this.SelectedActor, weapon)
             .ToList();

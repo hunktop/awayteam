@@ -86,8 +86,8 @@ public class GameMain : MonoBehaviour
                 actor1.Name = "Hunkenheim1";
                 actor1.Abilities.Add(new BasicMoveAbility());
                 actor1.Abilities.Add(new WaitAbility());
-                actor1.Inventory.AddItem(StaticWeapons.Rifle);
-                actor1.Inventory.EquipItem(StaticWeapons.Rifle);
+                actor1.Inventory.AddItem(Weapons.AssaultRifle);
+                actor1.Inventory.EquipItem(Weapons.AssaultRifle);
                 team1.Members.Add(actor1);
                 var actor2 = new ActorProperties();
                 actor2.SpriteName = "goodsoldier";

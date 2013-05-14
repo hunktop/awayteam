@@ -39,5 +39,5 @@ public abstract class AttackAbility : Ability
     {
     }
 
-    public abstract IEnumerable<Vector2i> GetAttackableLocations(Map map, Actor actor, RangedWeapon weapon);
+    public abstract IEnumerable<Vector2i> GetAttackableLocations(Map map, Actor actor, WeaponProperties weapon);
 }
