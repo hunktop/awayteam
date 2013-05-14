@@ -52,10 +52,6 @@ public class MissionScene : GameScene, FSingleTouchableInterface
     private TurnState turnState;
     private bool started;
 
-    private MoveController moveController;
-    private WaitController waitController;
-    private Dictionary<uint, AbilityController> abilityToController;
-
     private List<Team> teams = new List<Team>();
     private int teamIndex;
     private int actorsProcessedThisTurn;
@@ -145,10 +141,6 @@ public class MissionScene : GameScene, FSingleTouchableInterface
             }
         }
 
-        this.abilityToController = new Dictionary<uint, AbilityController>();
-        this.abilityToController.Add(AbilityId.BasicMove, MoveController.Instance);
-        this.abilityToController.Add(AbilityId.Wait, WaitController.Instance);
-
         this.teamIndex = 0;
         this.turnState = TurnState.TurnBegin;
         this.started = true;
@@ -189,7 +181,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         foreach (var actor in this.Map.Actors.Where(a => a.Team == curTeam))
         {
             actor.TurnState = ActorState.CommandsAvailable;
-            foreach (var ability in actor.Properties.Abilities)
+            foreach (var ability in actor.Properties.AllAbilities)
             {
                 ability.DecrementCooldown();
             }
@@ -354,7 +346,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
     {
         Debug.Log("[[Ability Button Pressed]]: Actor " + this.SelectedActor + ", Ability " + b.data);
         var ability = b.data as Ability;
-        var controller = this.abilityToController[ability.ID];
+        var controller = ability.GetController();
         controller.ActionComplete += actionComplete;
         this.RemoveChild(this.buttonStrip);
         this.buttonStrip = null;
@@ -381,6 +373,10 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         controller.ActionComplete -= actionComplete;
     }
 
+    #endregion
+
+    #region Private Methods
+
     private void clearSelection()
     {
         this.ClearOverlay();
@@ -390,10 +386,6 @@ public class MissionScene : GameScene, FSingleTouchableInterface
             this.RemoveChild(this.buttonStrip);
         }
     }
-
-    #endregion
-
-    #region Private Methods
 
     private void showButtonStrip(Actor actor)
     {

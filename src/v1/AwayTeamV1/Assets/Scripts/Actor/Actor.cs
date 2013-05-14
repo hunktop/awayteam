@@ -46,6 +46,14 @@ public class Actor : FSprite
         }
     }
 
+    public Item EquippedItem
+    {
+        get
+        {
+            return this.Properties.Inventory.EquippedItem;
+        }
+    }
+
     #endregion
 
     #region Turn State

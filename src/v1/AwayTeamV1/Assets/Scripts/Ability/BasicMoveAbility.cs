@@ -21,4 +21,9 @@ public class BasicMoveAbility : MoveAbility
             actor.GridPosition,
             actor.Properties.MovementPoints);
     }
+
+    public override AbilityController GetController()
+    {
+        return MoveController.Instance;
+    }
 }

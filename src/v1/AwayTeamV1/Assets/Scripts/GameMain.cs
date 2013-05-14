@@ -86,6 +86,8 @@ public class GameMain : MonoBehaviour
                 actor1.Name = "Hunkenheim1";
                 actor1.Abilities.Add(new BasicMoveAbility());
                 actor1.Abilities.Add(new WaitAbility());
+                actor1.Inventory.AddItem(StaticWeapons.Rifle);
+                actor1.Inventory.EquipItem(StaticWeapons.Rifle);
                 team1.Members.Add(actor1);
                 var actor2 = new ActorProperties();
                 actor2.SpriteName = "goodsoldier";
@@ -106,6 +108,8 @@ public class GameMain : MonoBehaviour
                 actor3.Abilities.Add(new WaitAbility());
                 team2.Members.Add(actor3);
                 missionScene.AddTeam(team2);
+
+                TextAsset puzdata = (TextAsset)Resources.Load("puzzles", typeof(TextAsset));
 
                 sceneToCreate = missionScene;
                 AwayTeam.MissionController = missionScene;

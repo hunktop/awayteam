@@ -6,16 +6,48 @@ public class ActorProperties
 {
     #region Private Fields
 
-    private HashSet<Ability> allAbilities = new HashSet<Ability>();
+    private List<Ability> myAbilities = new List<Ability>();
 
     #endregion
 
-    #region Attributes
+    #region Properties
 
     public string Name
     {
         get;
         set;
+    }
+
+    public IEnumerable<Ability> AvailableAbilities
+    {
+        get
+        {
+            if (this.Inventory.EquippedItem != null)
+            {
+                return this.myAbilities
+                    .Union(this.Inventory.EquippedItem.Abilities)
+                    .Where(a => a.Available);
+            }
+            else
+            {
+                return myAbilities.Where(a => a.Available);
+            }
+        }
+    }
+
+    public IEnumerable<Ability> AllAbilities
+    {
+        get
+        {
+            if (this.Inventory.EquippedItem != null)
+            {
+                return this.myAbilities.Union(this.Inventory.EquippedItem.Abilities);
+            }
+            else
+            {
+                return myAbilities;
+            }
+        }
     }
 
     public int MovementPoints
@@ -30,27 +62,26 @@ public class ActorProperties
         set;
     }
 
-    public HashSet<Ability> Abilities
+    public List<Ability> Abilities
     {
         get
         {
-            return this.allAbilities;
+            return this.myAbilities;
         }
+    }
+
+    public Inventory Inventory
+    {
+        get;
+        private set;
     }
 
     #endregion
 
-    #region Turn State
-
-    public IEnumerable<Ability> AvailableAbilities
+    public ActorProperties()
     {
-        get
-        {
-            return this.allAbilities.Where(a => a.Available);
-        }
+        this.Inventory = new Inventory();
     }
-
-    #endregion
 
     public override string ToString()
     {

@@ -95,6 +95,7 @@ public abstract class Ability
         this.Category = category;
         this.IconName = icon;
         this.Cooldown = cooldown;
+        this.EndsTurn = endsTurn;
     }
 
     #endregion 
@@ -141,6 +142,7 @@ public abstract class Ability
     #endregion
 
     #region Public Methods
+    public abstract AbilityController GetController();
 
     public void DecrementCooldown()
     {

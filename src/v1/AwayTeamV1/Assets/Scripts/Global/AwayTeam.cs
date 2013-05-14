@@ -1,4 +1,5 @@
-﻿public class AwayTeam
+﻿using UnityEngine;
+public class AwayTeam
 {
     public static int MapScrollSpeed = 5;
 
@@ -10,4 +11,11 @@
     public static int TileSize = 40;
 
     public static MissionScene MissionController;
+
+    public static Vector2 GridToGlobal(Vector2i grid)
+    {
+        var globalx = grid.X * AwayTeam.TileSize + AwayTeam.TileSize / 2;
+        var globaly = grid.Y * AwayTeam.TileSize + AwayTeam.TileSize / 2;
+        return new Vector2(globalx, globaly);
+    }
 }

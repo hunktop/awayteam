@@ -28,4 +28,9 @@ public class WaitAbility : Ability
         var waitArgs = this.ConvertArgs<WaitArgs>(args);
         waitArgs.Actor.TurnState = ActorState.TurnOver;
     }
+
+    public override AbilityController GetController()
+    {
+        return WaitController.Instance;
+    }
 }

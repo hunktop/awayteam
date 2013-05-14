@@ -15,5 +15,11 @@ public class TileProperties
         get;
         set;
     }
+
+    public bool BlocksVision
+    {
+        get;
+        set;
+    }
 }
 

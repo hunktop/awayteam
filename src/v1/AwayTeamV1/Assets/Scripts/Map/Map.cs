@@ -152,6 +152,11 @@ public class Map : FContainer
         return (c.Y >= 0 && c.Y < this.Rows) && (c.X >= 0 && c.X < this.Columns);
     }
 
+    public bool Contains(int x, int y)
+    {
+        return (y >= 0 && y < this.Rows) && (x >= 0 && x < this.Columns);
+    }
+
     #endregion
 
     #region Actor Management
@@ -165,6 +170,11 @@ public class Map : FContainer
     public bool ContainsActorAtLocation(Vector2i location)
     {
         return this.actors.Any(x => x.GridPosition == location);
+    }
+
+    public bool ContainsActorAtLocation(int x, int y)
+    {
+        return this.actors.Any(a => a.GridPosition.X == x && a.GridPosition.Y == y);
     }
 
     public void AddActor(Actor actor, Vector2i location)

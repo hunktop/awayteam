@@ -1,21 +1,27 @@
-﻿public class RangedWeapon
+﻿public class RangedWeapon : Item
 {
     public int MinRange
     {
         get;
-        private set;
+        set;
     }
 
     public int MaxRange
     {
         get;
-        private set;
+        set;
     }
 
-    public RangedWeapon(int minRange, int maxRange)
+    public int Damage
     {
-        this.MinRange = minRange;
-        this.MinRange = maxRange;
+        get;
+        set;
+    }
+
+    public int Accuracy
+    {
+        get;
+        set;
     }
 }
 
