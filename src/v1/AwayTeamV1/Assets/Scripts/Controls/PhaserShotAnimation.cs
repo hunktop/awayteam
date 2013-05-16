@@ -1,15 +1,23 @@
 ﻿using UnityEngine;
 class PhaserShotAnimation : AnimationCanvas
 {
+    enum AnimationState
+    {
+        FiringShot, 
+        ShowingResult
+    }
+
     private Vector2 start;
     private Vector2 end;
     private Vector2 translated;
     private float velocity = 6f;
     private float fadeRate = 0.05f;
     private FSprite laser;
+    private FLabel label;
     private bool done;
+    private AnimationState animState;
 
-    public PhaserShotAnimation(Vector2 s, Vector2 e)
+    public PhaserShotAnimation(Vector2 s, Vector2 e, bool hits, int damage)
     {
         this.start = s;
         this.end = e;
@@ -29,11 +37,27 @@ class PhaserShotAnimation : AnimationCanvas
         this.laser.y = start.y;
         this.laser.height = 8;
         this.laser.width = 1;
+
+        if (hits)
+        {
+            this.label = new FLabel("courier", damage.ToString());
+        }
+        else
+        {
+            this.label = new FLabel("courier", "Miss!");
+        }
+        this.label.x = e.x;
+        this.label.y = e.y;
+        this.label.isVisible = false;
+        this.label.color = Color.red;
+        
+        this.animState = AnimationState.FiringShot;
     }
 
     public override void Start()
     {
         this.AddChild(this.laser);
+        this.AddChild(this.label);
         base.Start();
     }
 
@@ -44,17 +68,31 @@ class PhaserShotAnimation : AnimationCanvas
 
     public override void PrepareFrame()
     {
-        if (this.laser.width < this.translated.magnitude)
+        if (this.animState == AnimationState.FiringShot)
         {
-            this.laser.width += this.velocity;
+            if (this.laser.width < this.translated.magnitude)
+            {
+                this.laser.width += this.velocity;
+            }
+            else if (laser.alpha > 0)
+            {
+                this.laser.alpha -= this.fadeRate;
+            }
+            else
+            {
+                this.animState = AnimationState.ShowingResult;
+                this.label.isVisible = true;
+            }
         }
-        else if (laser.alpha > 0)
+        else if (this.animState == AnimationState.ShowingResult)
         {
-            this.laser.alpha -= this.fadeRate;
-        }
-        else
-        {
-            this.done = true;
+            this.label.y += 1;
+            this.label.alpha -= 0.01f;
+
+            if (label.alpha <= 0)
+            {
+                this.done = true;
+            }
         }
         base.PrepareFrame();
     }

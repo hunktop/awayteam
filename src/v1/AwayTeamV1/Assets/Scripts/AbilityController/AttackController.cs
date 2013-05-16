@@ -60,7 +60,7 @@ public class AttackController : AbilityController
         this.crossHair.isVisible = false;
         this.crossHair.width = AwayTeam.TileSize;
         this.crossHair.height = AwayTeam.TileSize;
-        this.ParentController.AddChild(this.crossHair);
+        this.ParentController.MapContainer.AddChild(this.crossHair);
         this.ParentController.TouchEnded += onTouchEnded;
     }
 
@@ -69,12 +69,13 @@ public class AttackController : AbilityController
         this.ParentController.TouchEnded -= onTouchEnded;
         this.ParentController.ClearOverlay();
         Futile.instance.SignalUpdate -= Update;
-        this.ParentController.RemoveChild(this.crossHair);
+        this.ParentController.MapContainer.RemoveChild(this.crossHair);
         base.Deactivate(turnOver, reason);
     }
 
     public override void Update()
     {
+
         var mousePosition2d = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
         var globalCoords = MouseManager.ScreenToGlobal(mousePosition2d);
         var gridCoords = this.Map.GlobalToGrid(globalCoords);

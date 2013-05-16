@@ -46,7 +46,10 @@ public class MissionScene : GameScene, FSingleTouchableInterface
     // Some book-keeping lists/sets
     private HashSet<Vector2i> visibleOverlayIndices;
 
+    private FContainer mapContainer;
+    private FContainer hud;
     private FSprite[,] overlay;
+    private FLabel turnLabel;
     private ButtonStrip buttonStrip;
 	private ScriptableObject interfaceManager;
     private TurnState turnState;
@@ -60,7 +63,23 @@ public class MissionScene : GameScene, FSingleTouchableInterface
     #endregion
 
     #region Public Properties
-    
+
+    public FContainer MapContainer
+    {
+        get
+        {
+            return this.mapContainer;
+        }
+    }
+
+    public FContainer HUD
+    {
+        get
+        {
+            return this.hud;
+        }
+    }
+
     public Actor SelectedActor
     {
         get;
@@ -87,7 +106,10 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         var height = 35;
 		var mapSeed = "blah blah";
         var tiles = new TileProperties[width, height];
-		
+
+        this.mapContainer = new FContainer();
+        this.hud = new FContainer();
+
 		// This handles GUI and stuff
 		//this.interfaceManager = new InterfaceManager();
 		//this.interfaceManager = ScriptableObject.CreateInstance("InterfaceManager");;
@@ -122,7 +144,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
 
         
         this.Map.Start();
-        this.AddChild(this.Map);
+        this.mapContainer.AddChild(this.Map);
 
         // Initialize overlay
         this.visibleOverlayIndices = new HashSet<Vector2i>();
@@ -137,10 +159,12 @@ public class MissionScene : GameScene, FSingleTouchableInterface
                 overlaySprite.isVisible = false;
                 overlaySprite.width = overlaySprite.height = AwayTeam.TileSize;
                 this.overlay[ii, jj] = overlaySprite;
-                this.AddChild(overlaySprite);
+                this.mapContainer.AddChild(overlaySprite);
             }
         }
 
+        this.AddChild(this.mapContainer);
+        this.AddChild(this.hud);
         this.teamIndex = 0;
         this.turnState = TurnState.TurnBegin;
         this.started = true;
@@ -176,6 +200,20 @@ public class MissionScene : GameScene, FSingleTouchableInterface
     {
         var curTeam = this.teams[this.teamIndex];
         Debug.Log("[[Team Turn Begin]] Team: " + curTeam.Name);
+
+        if (this.turnLabel == null)
+        {
+            this.turnLabel = new FLabel("courier", "Current Team: " + curTeam.Name);
+            this.turnLabel.x = 250;
+            this.turnLabel.y = 50;
+            this.turnLabel.color = Color.black;
+            this.hud.AddChild(this.turnLabel);
+        }
+        else
+        {
+            this.turnLabel.text = "Current Team: " + curTeam.Name;
+        }
+
         this.teamActorCount = this.teams[this.teamIndex].Members.Count;
         this.actorsProcessedThisTurn = 0;
         foreach (var actor in this.Map.Actors.Where(a => a.Team == curTeam))
@@ -348,7 +386,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         var ability = b.data as Ability;
         var controller = ability.GetController();
         controller.ActionComplete += actionComplete;
-        this.RemoveChild(this.buttonStrip);
+        this.mapContainer.RemoveChild(this.buttonStrip);
         this.buttonStrip = null;
         this.SelectedActor.TurnState = ActorState.ExecutingCommand;
         controller.Activate(ability);
@@ -383,7 +421,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         this.SelectedActor = null;
         if (this.buttonStrip != null && this._childNodes.Contains(this.buttonStrip))
         {
-            this.RemoveChild(this.buttonStrip);
+            this.mapContainer.RemoveChild(this.buttonStrip);
         }
     }
 
@@ -407,7 +445,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
 
         this.buttonStrip.x = actor.x + actor.width;
         this.buttonStrip.y = actor.y - actor.height;
-        this.AddChild(this.buttonStrip);
+        this.mapContainer.AddChild(this.buttonStrip);
     }
         
     private void scrollMap(Vector2 mousePosition)
@@ -418,33 +456,33 @@ public class MissionScene : GameScene, FSingleTouchableInterface
 
         if ((mX >= 0 && mX < margin) || Input.GetKey(KeyCode.A))
         {
-            if (this.x < 0)
+            if (this.mapContainer.x < 0)
             {
-                this.x += AwayTeam.MapScrollSpeed;
+                this.mapContainer.x += AwayTeam.MapScrollSpeed;
             }
         }
 
         if ((mX > (Futile.screen.width - margin) && mX <= Futile.screen.width) || Input.GetKey(KeyCode.D))
         {
-            if (Math.Abs(this.x) + Futile.screen.width < this.Map.Width)
+            if (Math.Abs(this.mapContainer.x) + Futile.screen.width < this.Map.Width)
             {
-                this.x -= AwayTeam.MapScrollSpeed;
+                this.mapContainer.x -= AwayTeam.MapScrollSpeed;
             }
         }
 
         if ((mY > 0 && mY < margin) || Input.GetKey(KeyCode.S))
         {
-            if (this.y < 0)
+            if (this.mapContainer.y < 0)
             {
-                this.y += AwayTeam.MapScrollSpeed;
+                this.mapContainer.y += AwayTeam.MapScrollSpeed;
             }
         }
 
         if ((mY > (Futile.screen.height - margin) && mY < Futile.screen.height) || Input.GetKey(KeyCode.W))
         {
-            if (Math.Abs(this.y) + Futile.screen.height < this.Map.Height)
+            if (Math.Abs(this.mapContainer.y) + Futile.screen.height < this.Map.Height)
             {
-                this.y -= AwayTeam.MapScrollSpeed;
+                this.mapContainer.y -= AwayTeam.MapScrollSpeed;
             }
         }
     }

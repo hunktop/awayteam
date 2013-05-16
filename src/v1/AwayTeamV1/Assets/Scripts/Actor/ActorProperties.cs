@@ -18,6 +18,18 @@ public class ActorProperties
         set;
     }
 
+    public int MaxHealth
+    {
+        get;
+        set;
+    }
+
+    public int CurrentHealth
+    {
+        get;
+        set;
+    }
+
     public IEnumerable<Ability> AvailableAbilities
     {
         get

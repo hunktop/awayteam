@@ -185,6 +185,12 @@ public class Map : FContainer
         this.actors.Add(actor);
     }
 
+    public void RemoveActor(Actor actor)
+    {
+        this.RemoveChild(actor);
+        this.actors.Remove(actor);
+    }
+
     #endregion
 
     #region Private Methods

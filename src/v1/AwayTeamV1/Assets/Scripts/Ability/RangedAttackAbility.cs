@@ -6,6 +6,10 @@ using UnityEngine;
 
 public class RangedAttackAbility : AttackAbility
 {
+    private Actor hitActor;
+    private int damage;
+    private AttackArgs attackArgs;
+
     public RangedAttackAbility()
         : base(
             "Ranged Attack",
@@ -22,10 +26,56 @@ public class RangedAttackAbility : AttackAbility
 
     protected override void ExecuteImpl(object args)
     {
-        var attackArgs = this.ConvertArgs<AttackArgs>(args);
+        this.attackArgs = this.ConvertArgs<AttackArgs>(args);
         var projectileEnd = AwayTeam.GridToGlobal(attackArgs.TargetedLocation);
         var projectileStart = AwayTeam.GridToGlobal(attackArgs.Actor.GridPosition);
-        this.shootLaser(projectileStart, projectileEnd);
+        var actor = attackArgs.Actor;
+        var weapon = attackArgs.Actor.EquippedItem as WeaponProperties;
+        bool hits = false;
+        
+        var squareHit = this.GetSquareHit(attackArgs.Actor, attackArgs.TargetedLocation);
+        if (attackArgs.Map.TryGetActor(attackArgs.TargetedLocation, out hitActor))
+        {
+            var hitChance = GetChanceToHitActor(attackArgs.Actor, hitActor, weapon);
+            var hitRoll = UnityEngine.Random.Range(0.0f, 1.0f);
+            if (hitRoll <= hitChance)
+            {
+                hits = true;
+                this.damage = this.GetDamageOnHit(attackArgs.Actor, hitActor, weapon);
+                Debug.Log("[[Attack hits dealing " + damage + " damage.]]");
+            }
+        }
+        this.shootLaser(projectileStart, projectileEnd, hits, this.damage);
+    }
+
+    private void ApplyDamage(Map map, Actor actor, int damage)
+    {
+        actor.Properties.CurrentHealth = Math.Max(0, actor.Properties.CurrentHealth - damage);
+        if (actor.Properties.CurrentHealth == 0)
+        {
+            map.RemoveActor(actor);
+        }
+    }
+
+    private Vector2i GetSquareHit(Actor attacker, Vector2i destination)
+    {
+        return destination;
+    }
+
+    private float GetChanceToHitActor(Actor attacker, Actor target, WeaponProperties properties)
+    {
+        return 0.80f;
+    }
+
+    private int GetDamageOnHit(Actor attacker, Actor target, WeaponProperties properties)
+    {
+        var damage = properties.Damage;
+        var critRoll = UnityEngine.Random.Range(0.0f, 1.0f);
+        if(critRoll <= properties.CritChance)
+        {
+            damage += properties.AdditionalCritDamage;
+        }
+        return damage;
     }
 
     public override AbilityController GetController()
@@ -33,13 +83,13 @@ public class RangedAttackAbility : AttackAbility
         return AttackController.Instance;
     }
 
-    private void shootLaser(Vector2 start, Vector2 end)
+    private void shootLaser(Vector2 start, Vector2 end, bool hits, int damage)
     {
-        var phaserShot = new PhaserShotAnimation(start, end);
+        var phaserShot = new PhaserShotAnimation(start, end, hits, damage);
         phaserShot.Start();
         phaserShot.Delay = 10;
         phaserShot.AnimationStopped += new EventHandler<AnimationEventArgs>(this.phaserShot_AnimationStopped);
-        AwayTeam.MissionController.AddChild(phaserShot);
+        AwayTeam.MissionController.MapContainer.AddChild(phaserShot);
         phaserShot.Play();
     }
 
@@ -47,7 +97,11 @@ public class RangedAttackAbility : AttackAbility
     {
         if (args.StoppedReason == StoppedReason.Complete)
         {
-            AwayTeam.MissionController.RemoveChild(sender as FNode);
+            if (this.hitActor != null)
+            {
+                this.ApplyDamage(this.attackArgs.Map, this.hitActor, this.damage);
+            }
+            AwayTeam.MissionController.MapContainer.RemoveChild(sender as FNode);
             this.AfterAbilityExecute(true);
         }
     }
