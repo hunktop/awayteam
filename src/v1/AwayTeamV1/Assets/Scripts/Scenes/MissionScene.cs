@@ -91,6 +91,14 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         get;
         private set;
     }
+
+    public Team CurrentTeam
+    {
+        get
+        {
+            return this.teams[this.teamIndex];
+        }
+    }
     
     #endregion
 
@@ -198,7 +206,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
     
     private void TurnBegin()
     {
-        var curTeam = this.teams[this.teamIndex];
+        var curTeam = this.CurrentTeam;
         Debug.Log("[[Team Turn Begin]] Team: " + curTeam.Name);
 
         if (this.turnLabel == null)
@@ -214,7 +222,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
             this.turnLabel.text = "Current Team: " + curTeam.Name;
         }
 
-        this.teamActorCount = this.teams[this.teamIndex].Members.Count;
+        this.teamActorCount = curTeam.Members.Count;
         this.actorsProcessedThisTurn = 0;
         foreach (var actor in this.Map.Actors.Where(a => a.Team == curTeam))
         {
@@ -257,15 +265,16 @@ public class MissionScene : GameScene, FSingleTouchableInterface
 
     private void TurnEnd()
     {
-        Debug.Log("[[Team Turn End]] Team: " +  this.teams[this.teamIndex].Name);
+        Debug.Log("[[Team Turn End]] Team: " +  this.CurrentTeam.Name);
         this.teamIndex = (this.teamIndex + 1) % this.teams.Count;
         this.turnState = TurnState.TurnBegin;
     }
 
     private bool TurnOver()
     {
-        return this.actorsProcessedThisTurn >= this.teamActorCount;
+        return this.actorsProcessedThisTurn >= this.CurrentTeam.Members.Count(x => x.IsAlive);
     }
+
     #endregion 
 
     #region Overrides
@@ -324,6 +333,11 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         this.visibleOverlayIndices.Clear();
     }
 
+    public void RemoveActor(Actor a)
+    {
+        this.Map.RemoveActor(a);
+    }
+
     #endregion
 
     #region Touch Handlers
@@ -353,7 +367,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         }
 
         var gridVector = this.Map.GlobalToGrid(touch.position);
-        var curTeam = this.teams[this.teamIndex];
+        var curTeam = this.CurrentTeam;
         Actor tempActor;
 
         Debug.Log("[[Touch Detected]]: World Coordinates: " + touch.position + ", Map Coordinates: " + gridVector);
