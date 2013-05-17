@@ -24,6 +24,13 @@ public class RangedAttackAbility : AttackAbility
         return AttackHelper.GetTargetablePoints(map, actor, weapon.MinRange, weapon.MaxRange, true, false);
     }
 
+    public override AbilityController GetController()
+    {
+        return AttackController.Instance;
+    }
+
+    #region Combat Calculation
+
     protected override void ExecuteImpl(object args)
     {
         this.attackArgs = this.ConvertArgs<AttackArgs>(args);
@@ -42,7 +49,6 @@ public class RangedAttackAbility : AttackAbility
             {
                 hits = true;
                 this.damage = this.GetDamageOnHit(attackArgs.Actor, hitActor, weapon);
-                Debug.Log("[[Attack hits dealing " + damage + " damage.]]");
             }
         }
         this.shootLaser(projectileStart, projectileEnd, hits, this.damage);
@@ -53,7 +59,7 @@ public class RangedAttackAbility : AttackAbility
         actor.Properties.CurrentHealth = Math.Max(0, actor.Properties.CurrentHealth - damage);
         if (actor.Properties.CurrentHealth == 0)
         {
-            map.RemoveActor(actor);
+            AwayTeam.MissionController.RemoveActor(actor);
         }
     }
 
@@ -71,17 +77,16 @@ public class RangedAttackAbility : AttackAbility
     {
         var damage = properties.Damage;
         var critRoll = UnityEngine.Random.Range(0.0f, 1.0f);
-        if(critRoll <= properties.CritChance)
+        if (critRoll <= properties.CritChance)
         {
             damage += properties.AdditionalCritDamage;
         }
         return damage;
     }
 
-    public override AbilityController GetController()
-    {
-        return AttackController.Instance;
-    }
+    #endregion
+
+    #region Animation
 
     private void shootLaser(Vector2 start, Vector2 end, bool hits, int damage)
     {
@@ -105,4 +110,6 @@ public class RangedAttackAbility : AttackAbility
             this.AfterAbilityExecute(true);
         }
     }
+
+    #endregion
 }

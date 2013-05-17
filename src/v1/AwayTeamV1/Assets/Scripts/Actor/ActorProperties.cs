@@ -18,6 +18,14 @@ public class ActorProperties
         set;
     }
 
+    public bool IsAlive
+    {
+        get
+        {
+            return this.CurrentHealth > 0;
+        }
+    }
+
     public int MaxHealth
     {
         get;
