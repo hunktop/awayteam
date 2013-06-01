@@ -78,7 +78,8 @@ public class GameMain : MonoBehaviour
             case GameSceneType.MissionScene:
                 var missionScene = new MissionScene();
 
-                Team team1 = new Team("Rumbleshank");
+                /* old code for adding actors
+                 * Team team1 = new Team("Rumbleshank");
                 team1.AIControlled = false;
                 var actor1 = new ActorProperties();
                 actor1.SpriteName = "goodsoldier";
@@ -114,6 +115,13 @@ public class GameMain : MonoBehaviour
                 actor3.Abilities.Add(new WaitAbility());
                 team2.Members.Add(actor3);
                 missionScene.AddTeam(team2);
+                */
+				var actorController = new ActorController();
+				foreach (Team team in actorController.teams)
+				{
+					missionScene.AddTeam(team);
+				}
+				
 
                 TextAsset puzdata = (TextAsset)Resources.Load("puzzles", typeof(TextAsset));
 

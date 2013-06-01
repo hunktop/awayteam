@@ -127,6 +127,7 @@ public class MissionScene : GameScene, FSingleTouchableInterface
 		tiles = mapGenerator.GenerateMap(width, height, 10);
         
         /*
+         * this is the old code for generating a random map
         var rand = new System.Random();
         for (int ii = 0; ii < width; ii++)
         {
@@ -137,6 +138,8 @@ public class MissionScene : GameScene, FSingleTouchableInterface
         }
         */
         this.Map = new Map(tiles);
+		
+		
         int i = 5;
         int j = 5;
         foreach (var team in this.teams)
